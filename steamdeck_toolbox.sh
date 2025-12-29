@@ -18,12 +18,15 @@ INSTALL_DIR="$HOME/Applications"
 DESKTOP_DIR="$HOME/Desktop"
 BACKUP_DIR="$HOME/backups"
 TEMP_DIR="/tmp/steamdeck_toolbox"
+MAIN_LAUNCHER="$DESKTOP_DIR/SteamDeck工具箱.desktop"
+UPDATE_LAUNCHER="$DESKTOP_DIR/更新SteamDeck工具箱.desktop"
 SCRIPT_PATH="$(realpath "$0")"
 SCRIPT_DIR="$(dirname "$SCRIPT_PATH")"
 SCRIPT_NAME="$(basename "$SCRIPT_PATH")"
 
 # 版本信息
 VERSION="1.0.0"
+GITHUB_REPO="https://github.com/Zhucy123/steamdeck_toolbox.git"
 
 # 初始化目录
 init_dirs() {
@@ -37,6 +40,43 @@ init_dirs() {
 log() {
     local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
     echo "[$timestamp] $1" >> "$LOG_FILE"
+}
+
+# 创建桌面快捷方式
+create_desktop_shortcuts() {
+    # 静默创建主程序快捷方式
+    if [ ! -f "$MAIN_LAUNCHER" ]; then
+        cat > "$MAIN_LAUNCHER" << EOF
+[Desktop Entry]
+Type=Application
+Name=SteamDeck 工具箱
+Comment=Steam Deck 系统优化与软件管理工具 v$VERSION
+Exec=konsole -e /bin/bash -c 'cd "$SCRIPT_DIR" && ./"$SCRIPT_NAME" && echo "" && echo "程序执行完毕，按回车键关闭窗口..." && read'
+Icon=utilities-terminal
+Terminal=false
+StartupNotify=true
+Categories=Utility;
+EOF
+        chmod +x "$MAIN_LAUNCHER"
+        log "创建了主程序桌面快捷方式"
+    fi
+
+    # 静默创建更新程序快捷方式
+    if [ ! -f "$UPDATE_LAUNCHER" ]; then
+        cat > "$UPDATE_LAUNCHER" << EOF
+[Desktop Entry]
+Type=Application
+Name=更新SteamDeck工具箱
+Comment=更新 Steam Deck 工具箱到最新版本
+Exec=konsole -e /bin/bash -c 'cd "$SCRIPT_DIR" && ./"$SCRIPT_NAME" --update && echo "" && echo "按回车键关闭窗口..." && read'
+Icon=system-software-update
+Terminal=false
+StartupNotify=true
+Categories=Utility;
+EOF
+        chmod +x "$UPDATE_LAUNCHER"
+        log "创建了更新程序桌面快捷方式"
+    fi
 }
 
 # 显示标题
@@ -70,7 +110,7 @@ show_main_menu() {
         echo -e "${GREEN}  9.  安装ToMoon${NC}"
         echo -e "${GREEN} 10.  安装＆卸载插件商店${NC}"
         echo -e "${GREEN} 11.  安装＆卸载宝葫芦${NC}"
-        echo -e "${GREEN} 12.  校准摇杆${NC}"
+        echo -e "${GREEN}  12.  校准摇杆${NC}"
         echo -e "${GREEN} 13.  安装AnyDesk${NC}"
         echo -e "${GREEN} 14.  安装ToDesk${NC}"
         echo -e "${GREEN} 15.  安装WPS Office${NC}"
@@ -117,6 +157,319 @@ show_main_menu() {
                 ;;
         esac
     done
+}
+
+# ============================================
+# 修改后的更新工具箱功能
+# ============================================
+
+# 检查工具箱是否正在运行
+check_toolbox_running() {
+    local current_pid=$$
+    
+    # 查找所有包含steamdeck_toolbox的进程，排除当前进程
+    local running_pids=$(ps aux | grep -v "grep" | grep -v "$$" | grep -v "$PPID" | grep -E "(steamdeck_toolbox|konsole.*toolbox)" | awk '{print $2}')
+    
+    if [ -n "$running_pids" ]; then
+        echo "$running_pids"
+        return 0
+    else
+        return 1
+    fi
+}
+
+# 关闭工具箱进程
+close_toolbox_processes() {
+    local pids="$1"
+    
+    echo "正在关闭工具箱进程..."
+    for pid in $pids; do
+        if [ -n "$pid" ] && [ "$pid" -ne "$$" ]; then
+            echo "关闭进程 $pid"
+            kill -9 "$pid" 2>/dev/null
+        fi
+    done
+    
+    # 等待进程关闭
+    sleep 2
+}
+
+# 更新工具箱（通过参数调用）
+update_toolbox() {
+    # 显示更新界面
+    clear
+    echo -e "${CYAN}════════════════════════════════════════════════════════${NC}"
+    echo -e "${CYAN}              Steam Deck 工具箱更新程序               ${NC}"
+    echo -e "${CYAN}════════════════════════════════════════════════════════${NC}"
+    echo ""
+    
+    # 步骤1: 检查工具箱是否正在运行
+    echo -e "${CYAN}步骤1: 检查工具箱运行状态...${NC}"
+    
+    local running_pids=$(check_toolbox_running)
+    
+    if [ -n "$running_pids" ]; then
+        echo -e "${YELLOW}检测到工具箱正在运行！${NC}"
+        echo "检测到的进程ID: $running_pids"
+        echo ""
+        
+        # 询问用户是否关闭工具箱
+        echo -e "${YELLOW}需要先关闭正在运行的工具箱才能进行更新。${NC}"
+        read -p "是否关闭工具箱并继续更新？(y/N): " -n 1 -r
+        echo ""
+        
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            echo "正在关闭工具箱..."
+            close_toolbox_processes "$running_pids"
+            echo -e "${GREEN}✓ 工具箱已关闭${NC}"
+        else
+            echo -e "${RED}更新已取消。请先手动关闭工具箱，然后重新运行更新程序。${NC}"
+            echo ""
+            read -p "按回车键退出..."
+            exit 0
+        fi
+    else
+        echo -e "${GREEN}✓ 工具箱未运行，可以继续更新${NC}"
+    fi
+    
+    echo ""
+    
+    # 步骤2: 检查网络连接
+    echo -e "${CYAN}步骤2: 检查网络连接...${NC}"
+    if ! check_network_connection; then
+        echo -e "${RED}✗ 网络连接失败！${NC}"
+        echo "请检查网络连接后重试。"
+        read -p "按回车键退出..."
+        exit 1
+    fi
+    
+    echo -e "${GREEN}✓ 网络连接正常${NC}"
+    echo ""
+    
+    # 步骤3: 备份当前版本
+    echo -e "${CYAN}步骤3: 备份当前版本...${NC}"
+    local backup_file="$BACKUP_DIR/steamdeck_toolbox_backup_v${VERSION}_$(date +%Y%m%d_%H%M%S).sh"
+    
+    if cp "$SCRIPT_PATH" "$backup_file"; then
+        echo -e "${GREEN}✓ 当前版本已备份到: $(basename "$backup_file")${NC}"
+        log "备份当前版本到: $backup_file"
+    else
+        echo -e "${YELLOW}⚠️  备份失败，继续更新...${NC}"
+        log "备份当前版本失败"
+    fi
+    
+    echo ""
+    
+    # 步骤4: 下载最新版本
+    echo -e "${CYAN}步骤4: 下载最新版本...${NC}"
+    echo "正在从GitHub下载最新版本..."
+    echo "仓库地址: $GITHUB_REPO"
+    echo ""
+    
+    # 检查是否已安装git
+    if ! command -v git &> /dev/null; then
+        echo -e "${YELLOW}未找到git，正在尝试安装...${NC}"
+        sudo pacman -Sy git --noconfirm 2>/dev/null || {
+            echo -e "${RED}✗ 安装git失败！请手动安装git后重试。${NC}"
+            read -p "按回车键退出..."
+            exit 1
+        }
+        echo -e "${GREEN}✓ git安装完成${NC}"
+    fi
+    
+    # 切换到用户目录
+    cd ~/ || {
+        echo -e "${RED}✗ 无法切换到用户目录${NC}"
+        read -p "按回车键退出..."
+        exit 1
+    }
+    
+    # 检查是否已经存在仓库目录
+    local temp_repo_dir="$HOME/steamdeck_toolbox_temp"
+    if [ -d "$temp_repo_dir" ]; then
+        echo "删除旧的临时仓库目录..."
+        rm -rf "$temp_repo_dir"
+    fi
+    
+    # 克隆仓库
+    echo "正在克隆仓库..."
+    if git clone "$GITHUB_REPO" "$temp_repo_dir" 2>/dev/null; then
+        echo -e "${GREEN}✓ 仓库克隆完成${NC}"
+    else
+        echo -e "${RED}✗ 克隆仓库失败！${NC}"
+        echo "请检查网络连接和仓库地址。"
+        read -p "按回车键退出..."
+        exit 1
+    fi
+    
+    # 步骤5: 检查仓库中的脚本文件
+    echo -e "${CYAN}步骤5: 检查更新文件...${NC}"
+    
+    local new_script_path="$temp_repo_dir/steamdeck_toolbox.sh"
+    
+    if [ ! -f "$new_script_path" ]; then
+        echo -e "${YELLOW}在仓库中未找到steamdeck_toolbox.sh，尝试查找其他文件...${NC}"
+        
+        # 尝试查找其他可能的脚本文件
+        local found_script=$(find "$temp_repo_dir" -name "*.sh" -type f | head -1)
+        
+        if [ -f "$found_script" ]; then
+            new_script_path="$found_script"
+            echo "找到脚本文件: $(basename "$new_script_path")"
+        else
+            echo -e "${RED}✗ 在仓库中未找到脚本文件！${NC}"
+            rm -rf "$temp_repo_dir"
+            read -p "按回车键退出..."
+            exit 1
+        fi
+    fi
+    
+    # 提取新版本号
+    local new_version=$(extract_version "$new_script_path")
+    
+    if [ -n "$new_version" ]; then
+        echo "当前版本: $VERSION"
+        echo "最新版本: $new_version"
+        
+        if [ "$VERSION" == "$new_version" ]; then
+            echo -e "${YELLOW}版本相同，但文件可能已更新，继续更新...${NC}"
+        else
+            echo -e "${GREEN}发现新版本: $new_version${NC}"
+        fi
+    else
+        echo -e "${YELLOW}⚠️  无法获取新版本号，继续更新...${NC}"
+    fi
+    
+    echo ""
+    
+    # 步骤6: 替换脚本文件
+    echo -e "${CYAN}步骤6: 替换脚本文件...${NC}"
+    
+    # 备份当前脚本
+    local current_backup="$SCRIPT_PATH.backup"
+    cp "$SCRIPT_PATH" "$current_backup"
+    
+    echo "正在替换脚本文件..."
+    
+    # 复制新脚本到原位置（强制覆盖）
+    if cp -f "$new_script_path" "$SCRIPT_PATH"; then
+        chmod +x "$SCRIPT_PATH"
+        echo -e "${GREEN}✓ 脚本文件替换成功${NC}"
+        
+        # 记录更新日志
+        if [ -n "$new_version" ]; then
+            log "更新脚本成功: $VERSION -> $new_version"
+        else
+            log "更新脚本成功"
+        fi
+    else
+        echo -e "${RED}✗ 脚本文件替换失败！${NC}"
+        echo "正在恢复备份..."
+        
+        # 尝试恢复备份
+        if [ -f "$current_backup" ]; then
+            cp -f "$current_backup" "$SCRIPT_PATH"
+            chmod +x "$SCRIPT_PATH"
+            echo -e "${YELLOW}✓ 已恢复备份${NC}"
+        fi
+        
+        # 清理临时文件
+        rm -rf "$temp_repo_dir"
+        
+        read -p "按回车键退出..."
+        exit 1
+    fi
+    
+    # 清理备份文件
+    rm -f "$current_backup"
+    
+    # 清理临时仓库
+    echo "清理临时文件..."
+    rm -rf "$temp_repo_dir"
+    
+    echo ""
+    
+    # 步骤7: 更新桌面快捷方式
+    echo -e "${CYAN}步骤7: 更新桌面快捷方式...${NC}"
+    
+    # 删除旧的快捷方式，新的脚本会在下次运行时创建
+    rm -f "$MAIN_LAUNCHER"
+    rm -f "$UPDATE_LAUNCHER"
+    
+    echo -e "${GREEN}✓ 桌面快捷方式已标记为需要更新${NC}"
+    echo "下次运行工具箱时会自动创建新版本的快捷方式。"
+    
+    echo ""
+    
+    # 更新完成
+    echo -e "${CYAN}════════════════════════════════════════════════════════${NC}"
+    echo -e "${GREEN}              ✓ 更新完成！                          ${NC}"
+    echo -e "${CYAN}════════════════════════════════════════════════════════${NC}"
+    echo ""
+    
+    if [ -n "$new_version" ] && [ "$VERSION" != "$new_version" ]; then
+        echo -e "${GREEN}工具箱已从 v$VERSION 更新到 v$new_version${NC}"
+    else
+        echo -e "${GREEN}工具箱更新完成${NC}"
+    fi
+    
+    echo ""
+    echo -e "${YELLOW}提示：${NC}"
+    echo "1. 下次运行工具箱时会自动创建新的桌面快捷方式"
+    echo "2. 旧版本备份保存在: $BACKUP_DIR/"
+    echo "3. 更新日志保存在: $LOG_FILE"
+    echo "4. 如有问题，可以手动恢复备份"
+    echo ""
+    
+    log "工具箱更新完成"
+    
+    # 提示用户重新运行
+    echo -e "${YELLOW}请重新运行工具箱以使用新版本。${NC}"
+    read -p "按回车键退出更新程序..."
+    exit 0
+}
+
+# 检查网络连接
+check_network_connection() {
+    # 尝试ping一个可靠的服务
+    if ping -c 2 -W 3 8.8.8.8 &> /dev/null; then
+        return 0
+    elif ping -c 2 -W 3 1.1.1.1 &> /dev/null; then
+        return 0
+    else
+        # 尝试连接HTTP网站
+        if command -v curl &> /dev/null; then
+            if curl -s --connect-timeout 5 https://www.baidu.com &> /dev/null; then
+                return 0
+            fi
+        elif command -v wget &> /dev/null; then
+            if wget -q --timeout=5 --tries=1 https://www.baidu.com -O /dev/null; then
+                return 0
+            fi
+        fi
+    fi
+    
+    return 1
+}
+
+# 从脚本文件中提取版本号
+extract_version() {
+    local script_file="$1"
+    
+    # 尝试从脚本开头提取版本号
+    local version=$(grep -E "^#.*[Vv]ersion[[:space:]]*:" "$script_file" | head -1 | grep -o "[0-9]\+\.[0-9]\+\.[0-9]\+")
+    
+    if [ -z "$version" ]; then
+        # 尝试从注释中提取
+        version=$(grep -E "VERSION[[:space:]]*=" "$script_file" | head -1 | grep -o "[0-9]\+\.[0-9]\+\.[0-9]\+")
+    fi
+    
+    if [ -z "$version" ]; then
+        # 尝试从其他格式提取
+        version=$(grep -E "v[0-9]\+\.[0-9]\+\.[0-9]\+" "$script_file" | head -1 | grep -o "[0-9]\+\.[0-9]\+\.[0-9]\+")
+    fi
+    
+    echo "$version"
 }
 
 # ============================================
@@ -340,7 +693,7 @@ fix_disk_write_error() {
         # 原始挂载点不存在，创建挂载点
         sudo mkdir -p "$MOUNT_POINT"
     fi
-
+    
     if [ -n "$MOUNT_POINT" ]; then
         echo "重新挂载分区到: $MOUNT_POINT"
         if sudo mount "$DISK_DEVICE" "$MOUNT_POINT" 2>/dev/null; then
@@ -365,10 +718,10 @@ fix_boot() {
     echo ""
     echo -e "${CYAN}正在修复引导...${NC}"
     echo ""
-
+    
     # 这里可以添加实际的引导修复命令
     # 例如: sudo bootctl install 等
-
+    
     echo -e "${GREEN}✓ 引导修复完成（示例功能）${NC}"
     log "修复引导"
     read -p "按回车键返回主菜单..."
@@ -381,10 +734,10 @@ fix_shared_disk() {
     echo ""
     echo -e "${CYAN}正在修复互通盘...${NC}"
     echo ""
-
+    
     # 这里可以添加实际的互通盘修复命令
     # 例如: 重新挂载共享目录等
-
+    
     echo -e "${GREEN}✓ 互通盘修复完成（示例功能）${NC}"
     log "修复互通盘"
     read -p "按回车键返回主菜单..."
@@ -396,13 +749,13 @@ clear_hosts_cache() {
     echo -e "${YELLOW}════════════════ 清理hosts缓存 ════════════════${NC}"
     echo ""
     echo -e "${CYAN}正在清理hosts缓存...${NC}"
-
+    
     # 清理DNS缓存
     sudo systemd-resolve --flush-caches 2>/dev/null || true
-
+    
     # 重启network服务
     sudo systemctl restart systemd-networkd 2>/dev/null || true
-
+    
     echo ""
     echo -e "${GREEN}✓ hosts缓存清理完成${NC}"
     log "清理hosts缓存"
@@ -416,9 +769,9 @@ install_uu_accelerator() {
     echo ""
     echo -e "${CYAN}正在安装UU加速器插件...${NC}"
     echo ""
-
+    
     # 这里可以添加实际的UU加速器安装命令
-
+    
     echo -e "${GREEN}✓ UU加速器插件安装完成（示例功能）${NC}"
     log "安装UU加速器插件"
     read -p "按回车键返回主菜单..."
@@ -431,9 +784,9 @@ install_tomoon() {
     echo ""
     echo -e "${CYAN}正在安装ToMoon...${NC}"
     echo ""
-
+    
     # 这里可以添加实际的ToMoon安装命令
-
+    
     echo -e "${GREEN}✓ ToMoon安装完成（示例功能）${NC}"
     log "安装ToMoon"
     read -p "按回车键返回主菜单..."
@@ -448,7 +801,7 @@ install_remove_plugin_store() {
     echo "2. 卸载插件商店"
     echo ""
     read -p "请选择操作 (1或2): " plugin_choice
-
+    
     case $plugin_choice in
         1)
             echo -e "${CYAN}正在安装插件商店...${NC}"
@@ -466,7 +819,7 @@ install_remove_plugin_store() {
             echo -e "${RED}无效选择${NC}"
             ;;
     esac
-
+    
     read -p "按回车键返回主菜单..."
 }
 
@@ -479,7 +832,7 @@ install_remove_baohulu() {
     echo "2. 卸载宝葫芦"
     echo ""
     read -p "请选择操作 (1或2): " baohulu_choice
-
+    
     case $baohulu_choice in
         1)
             echo -e "${CYAN}正在安装宝葫芦...${NC}"
@@ -497,7 +850,7 @@ install_remove_baohulu() {
             echo -e "${RED}无效选择${NC}"
             ;;
     esac
-
+    
     read -p "按回车键返回主菜单..."
 }
 
@@ -511,10 +864,10 @@ calibrate_joystick() {
     echo "1. 不要触摸摇杆"
     echo "2. 随后缓慢移动摇杆至各个方向极限位置"
     echo ""
-
+    
     # 这里可以添加实际的摇杆校准命令
     # 例如: sudo evtest --calibrate /dev/input/eventX 等
-
+    
     echo -e "${GREEN}✓ 摇杆校准完成（示例功能）${NC}"
     log "校准摇杆"
     read -p "按回车键返回主菜单..."
@@ -527,7 +880,7 @@ install_anydesk() {
     echo ""
     echo -e "${CYAN}正在安装AnyDesk...${NC}"
     echo ""
-
+    
     # 下载并安装AnyDesk
     echo "下载AnyDesk..."
     wget -q -O /tmp/anydesk.deb "https://download.anydesk.com/linux/anydesk_6.2.1_amd64.deb" || {
@@ -535,16 +888,16 @@ install_anydesk() {
         read -p "按回车键返回主菜单..."
         return
     }
-
+    
     echo "安装AnyDesk..."
     sudo apt install -y /tmp/anydesk.deb 2>/dev/null || {
         echo -e "${YELLOW}使用dpkg安装...${NC}"
         sudo dpkg -i /tmp/anydesk.deb
         sudo apt install -f -y
     }
-
+    
     rm -f /tmp/anydesk.deb
-
+    
     echo ""
     echo -e "${GREEN}✓ AnyDesk安装完成${NC}"
     log "安装AnyDesk"
@@ -558,9 +911,9 @@ install_todesk() {
     echo ""
     echo -e "${CYAN}正在安装ToDesk...${NC}"
     echo ""
-
+    
     # 这里可以添加实际的ToDesk安装命令
-
+    
     echo -e "${GREEN}✓ ToDesk安装完成（示例功能）${NC}"
     log "安装ToDesk"
     read -p "按回车键返回主菜单..."
@@ -573,9 +926,9 @@ install_wps_office() {
     echo ""
     echo -e "${CYAN}正在安装WPS Office...${NC}"
     echo ""
-
+    
     # 这里可以添加实际的WPS Office安装命令
-
+    
     echo -e "${GREEN}✓ WPS Office安装完成（示例功能）${NC}"
     log "安装WPS Office"
     read -p "按回车键返回主菜单..."
@@ -588,14 +941,14 @@ install_qq() {
     echo ""
     echo -e "${CYAN}正在安装QQ...${NC}"
     echo ""
-
-    # 通过Flatpak安装QQ Linux版
+    
+    # 通过Flatpak安装QQ
     echo "通过Flatpak安装QQ Linux版..."
     flatpak install -y flathub com.qq.QQ 2>/dev/null || {
         echo -e "${YELLOW}尝试其他方法...${NC}"
         # 可以添加其他安装方法
     }
-
+    
     echo ""
     echo -e "${GREEN}✓ QQ安装完成${NC}"
     log "安装QQ"
@@ -609,14 +962,14 @@ install_wechat() {
     echo ""
     echo -e "${CYAN}正在安装微信...${NC}"
     echo ""
-
+    
     # 通过Flatpak安装微信
     echo "通过Flatpak安装微信..."
     flatpak install -y flathub com.tencent.WeChat 2>/dev/null || {
         echo -e "${YELLOW}尝试其他方法...${NC}"
         # 可以添加其他安装方法
     }
-
+    
     echo ""
     echo -e "${GREEN}✓ 微信安装完成${NC}"
     log "安装微信"
@@ -630,9 +983,9 @@ install_qqmusic() {
     echo ""
     echo -e "${CYAN}正在安装QQ音乐...${NC}"
     echo ""
-
+    
     # 这里可以添加实际的QQ音乐安装命令
-
+    
     echo -e "${GREEN}✓ QQ音乐安装完成（示例功能）${NC}"
     log "安装QQ音乐"
     read -p "按回车键返回主菜单..."
@@ -645,7 +998,7 @@ install_baidunetdisk() {
     echo ""
     echo -e "${CYAN}正在安装百度网盘...${NC}"
     echo ""
-
+    
     # 下载并安装百度网盘
     echo "下载百度网盘Linux版..."
     wget -q -O /tmp/baidunetdisk.deb "https://issuepcdn.baidupcs.com/issue/netdisk/LinuxGuanjia/4.17.7/baidunetdisk_4.17.7_amd64.deb" || {
@@ -653,16 +1006,16 @@ install_baidunetdisk() {
         read -p "按回车键返回主菜单..."
         return
     }
-
+    
     echo "安装百度网盘..."
     sudo apt install -y /tmp/baidunetdisk.deb 2>/dev/null || {
         echo -e "${YELLOW}使用dpkg安装...${NC}"
         sudo dpkg -i /tmp/baidunetdisk.deb
         sudo apt install -f -y
     }
-
+    
     rm -f /tmp/baidunetdisk.deb
-
+    
     echo ""
     echo -e "${GREEN}✓ 百度网盘安装完成${NC}"
     log "安装百度网盘"
@@ -676,16 +1029,16 @@ install_edge() {
     echo ""
     echo -e "${CYAN}正在安装Edge浏览器...${NC}"
     echo ""
-
+    
     # 添加Microsoft仓库并安装Edge
     echo "添加Microsoft仓库..."
     curl -sSL https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
     sudo sh -c 'echo "deb [arch=amd64] https://packages.microsoft.com/repos/edge stable main" > /etc/apt/sources.list.d/microsoft-edge-dev.list'
-
+    
     echo "更新仓库并安装Edge..."
     sudo apt update
     sudo apt install -y microsoft-edge-stable
-
+    
     echo ""
     echo -e "${GREEN}✓ Edge浏览器安装完成${NC}"
     log "安装Edge浏览器"
@@ -699,7 +1052,7 @@ install_chrome() {
     echo ""
     echo -e "${CYAN}正在安装Google浏览器...${NC}"
     echo ""
-
+    
     # 下载并安装Google Chrome
     echo "下载Google Chrome..."
     wget -q -O /tmp/chrome.deb "https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb" || {
@@ -707,16 +1060,16 @@ install_chrome() {
         read -p "按回车键返回主菜单..."
         return
     }
-
+    
     echo "安装Google Chrome..."
     sudo apt install -y /tmp/chrome.deb 2>/dev/null || {
         echo -e "${YELLOW}使用dpkg安装...${NC}"
         sudo dpkg -i /tmp/chrome.deb
         sudo apt install -f -y
     }
-
+    
     rm -f /tmp/chrome.deb
-
+    
     echo ""
     echo -e "${GREEN}✓ Google Chrome安装完成${NC}"
     log "安装Google浏览器"
@@ -730,15 +1083,15 @@ update_installed_apps() {
     echo ""
     echo -e "${CYAN}正在更新已安装应用...${NC}"
     echo ""
-
+    
     # 更新系统包
     echo "更新系统包..."
     sudo apt update && sudo apt upgrade -y
-
+    
     # 更新Flatpak应用
     echo "更新Flatpak应用..."
     flatpak update -y
-
+    
     echo ""
     echo -e "${GREEN}✓ 已安装应用更新完成${NC}"
     log "更新已安装应用"
@@ -759,6 +1112,15 @@ main() {
     log "用户: $USER"
     log "系统: $(uname -a)"
     log "========================================"
+
+    # 检查是否是通过更新参数调用
+    if [ "$1" == "--update" ]; then
+        update_toolbox
+        exit 0
+    fi
+
+    # 静默检查并创建桌面快捷方式（仅首次运行）
+    create_desktop_shortcuts
 
     # 显示主菜单
     show_main_menu
