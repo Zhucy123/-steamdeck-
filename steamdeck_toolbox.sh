@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Steam Deck 工具箱 v1.0.1
+# Steam Deck 工具箱 v1.0.0
 # 制作人：薯条
 
 # 颜色定义
@@ -25,7 +25,7 @@ SCRIPT_DIR="$(dirname "$SCRIPT_PATH")"
 SCRIPT_NAME="$(basename "$SCRIPT_PATH")"
 
 # 版本信息
-VERSION="1.0.1"
+VERSION="1.0.0"
 GITHUB_REPO="https://github.com/Zhucy123/steamdeck_toolbox.git"
 
 # 初始化目录
@@ -1201,3 +1201,4 @@ main() {
 
 # 运行主程序
 main "$@"
+
