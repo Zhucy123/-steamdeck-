@@ -18,8 +18,6 @@ INSTALL_DIR="$HOME/Applications"
 DESKTOP_DIR="$HOME/Desktop"
 BACKUP_DIR="$HOME/backups"
 TEMP_DIR="/tmp/steamdeck_toolbox"
-MAIN_LAUNCHER="$DESKTOP_DIR/SteamDeck工具箱.desktop"
-UPDATE_LAUNCHER="$DESKTOP_DIR/更新SteamDeck工具箱.desktop"
 SCRIPT_PATH="$(realpath "$0")"
 SCRIPT_DIR="$(dirname "$SCRIPT_PATH")"
 SCRIPT_NAME="$(basename "$SCRIPT_PATH")"
@@ -84,8 +82,7 @@ show_main_menu() {
         echo -e "${GREEN} 20.  安装Edge浏览器${NC}"
         echo -e "${GREEN} 21.  安装Google浏览器${NC}"
         echo -e "${GREEN} 22.  更新已安装应用${NC}"
-        echo -e "${GREEN} 23.  创建桌面快捷方式${NC}"
-        echo -e "${GREEN} 24.  更新工具箱${NC}"
+        echo -e "${GREEN} 23.  更新工具箱${NC}"
         echo ""
 
         echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════════════${NC}"
@@ -116,8 +113,7 @@ show_main_menu() {
             20) install_edge ;;
             21) install_chrome ;;
             22) update_installed_apps ;;
-            23) create_desktop_shortcuts_menu ;;
-            24) update_toolbox_menu ;;
+            23) update_toolbox_menu ;;
             *)
                 echo -e "${RED}无效选择，请重新输入！${NC}"
                 sleep 1
@@ -126,208 +122,21 @@ show_main_menu() {
     done
 }
 
-# 23. 创建桌面快捷方式（菜单选项）
-create_desktop_shortcuts_menu() {
-    show_header
-    echo -e "${YELLOW}════════════════ 创建桌面快捷方式 ════════════════${NC}"
-    echo ""
-    
-    echo -e "${CYAN}正在创建桌面快捷方式...${NC}"
-    echo ""
-    
-    # 获取当前脚本的绝对路径
-    local current_script_path="$(realpath "$0")"
-    local current_script_dir="$(dirname "$current_script_path")"
-    local current_script_name="$(basename "$current_script_path")"
-    
-    echo -e "${CYAN}脚本路径: $current_script_path${NC}"
-    echo -e "${CYAN}脚本目录: $current_script_dir${NC}"
-    echo -e "${CYAN}脚本名称: $current_script_name${NC}"
-    echo ""
-    
-    # 检查主程序快捷方式是否存在
-    if [ -f "$MAIN_LAUNCHER" ]; then
-        echo -e "${YELLOW}主程序快捷方式已存在${NC}"
-        read -p "是否覆盖？(y/N): " -n 1 -r
-        echo ""
-        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-            echo -e "${YELLOW}已取消创建${NC}"
-            log "取消创建主程序桌面快捷方式"
-            read -p "按回车键返回主菜单..."
-            return
-        fi
-    fi
-    
-    # 创建主程序快捷方式
-    cat > "$MAIN_LAUNCHER" << EOF
-[Desktop Entry]
-Type=Application
-Name=SteamDeck 工具箱
-Comment=Steam Deck 系统优化与软件管理工具 v$VERSION
-Exec=konsole --workdir "$current_script_dir" -e bash -c "'$current_script_path'; echo ''; echo '程序执行完毕，按回车键关闭窗口...'; read"
-Icon=utilities-terminal
-Terminal=false
-StartupNotify=true
-Categories=Utility;
-EOF
-    
-    chmod +x "$MAIN_LAUNCHER"
-    
-    if [ $? -eq 0 ]; then
-        echo -e "${GREEN}✓ 主程序快捷方式创建成功${NC}"
-        echo "位置: $MAIN_LAUNCHER"
-        log "手动创建主程序桌面快捷方式: $MAIN_LAUNCHER"
-    else
-        echo -e "${RED}✗ 主程序快捷方式创建失败${NC}"
-        log "创建主程序桌面快捷方式失败"
-    fi
-    
-    echo ""
-    
-    # 检查更新程序快捷方式是否存在
-    if [ -f "$UPDATE_LAUNCHER" ]; then
-        echo -e "${YELLOW}更新程序快捷方式已存在${NC}"
-        read -p "是否覆盖？(y/N): " -n 1 -r
-        echo ""
-        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-            echo -e "${YELLOW}已取消创建${NC}"
-            read -p "按回车键返回主菜单..."
-            return
-        fi
-    fi
-    
-    # 创建更新程序快捷方式
-    cat > "$UPDATE_LAUNCHER" << EOF
-[Desktop Entry]
-Type=Application
-Name=更新SteamDeck工具箱
-Comment=更新 Steam Deck 工具箱到最新版本
-Exec=konsole --workdir "$current_script_dir" -e bash -c "'$current_script_path' --update; echo ''; echo '按回车键关闭窗口...'; read"
-Icon=system-software-update
-Terminal=false
-StartupNotify=true
-Categories=Utility;
-EOF
-    
-    chmod +x "$UPDATE_LAUNCHER"
-    
-    if [ $? -eq 0 ]; then
-        echo -e "${GREEN}✓ 更新程序快捷方式创建成功${NC}"
-        echo "位置: $UPDATE_LAUNCHER"
-        log "手动创建更新程序桌面快捷方式: $UPDATE_LAUNCHER"
-    else
-        echo -e "${RED}✗ 更新程序快捷方式创建失败${NC}"
-        log "创建更新程序桌面快捷方式失败"
-    fi
-    
-    echo ""
-    echo -e "${YELLOW}提示：${NC}"
-    echo "1. 桌面快捷方式已创建完成"
-    echo "2. 如果无法启动，请检查脚本路径是否正确"
-    echo "3. 可以尝试重新运行此功能修复快捷方式"
-    
-    read -p "按回车键返回主菜单..."
-}
-
-# 24. 更新工具箱（菜单选项）
+# 23. 更新工具箱（菜单选项）
 update_toolbox_menu() {
     show_header
     echo -e "${YELLOW}════════════════ 更新工具箱 ════════════════${NC}"
     echo ""
     
-    echo -e "${CYAN}正在检查更新...${NC}"
+    echo -e "${CYAN}正在更新工具箱...${NC}"
     echo ""
     
-    # 调用更新功能
-    update_toolbox
-}
-
-# ============================================
-# 更新工具箱功能
-# ============================================
-
-# 检查工具箱是否正在运行
-check_toolbox_running() {
-    local current_pid=$$
-    
-    # 查找所有包含steamdeck_toolbox的进程，排除当前进程
-    local running_pids=$(ps aux | grep -v "grep" | grep -v "$$" | grep -v "$PPID" | grep -E "(steamdeck_toolbox|konsole.*toolbox)" | awk '{print $2}')
-    
-    if [ -n "$running_pids" ]; then
-        echo "$running_pids"
-        return 0
-    else
-        return 1
-    fi
-}
-
-# 关闭工具箱进程
-close_toolbox_processes() {
-    local pids="$1"
-    
-    echo "正在关闭工具箱进程..."
-    for pid in $pids; do
-        if [ -n "$pid" ] && [ "$pid" -ne "$$" ]; then
-            echo "关闭进程 $pid"
-            kill -9 "$pid" 2>/dev/null
-        fi
-    done
-    
-    # 等待进程关闭
-    sleep 2
-}
-
-# 更新工具箱（通过参数调用）
-update_toolbox() {
-    # 步骤1: 检查工具箱是否正在运行
-    echo -e "${CYAN}步骤1: 检查工具箱运行状态...${NC}"
-    
-    local running_pids=$(check_toolbox_running)
-    
-    if [ -n "$running_pids" ]; then
-        echo -e "${YELLOW}检测到工具箱正在运行！${NC}"
-        echo "检测到的进程ID: $running_pids"
-        echo ""
-        
-        # 询问用户是否关闭工具箱
-        echo -e "${YELLOW}需要先关闭正在运行的工具箱才能进行更新。${NC}"
-        read -p "是否关闭工具箱并继续更新？(y/N): " -n 1 -r
-        echo ""
-        
-        if [[ $REPLY =~ ^[Yy]$ ]]; then
-            echo "正在关闭工具箱..."
-            close_toolbox_processes "$running_pids"
-            echo -e "${GREEN}✓ 工具箱已关闭${NC}"
-        else
-            echo -e "${RED}更新已取消。请先手动关闭工具箱，然后重新运行更新程序。${NC}"
-            echo ""
-            read -p "按回车键返回主菜单..."
-            return
-        fi
-    else
-        echo -e "${GREEN}✓ 工具箱未运行，可以继续更新${NC}"
-    fi
-    
-    echo ""
-    
-    # 步骤2: 检查网络连接
-    echo -e "${CYAN}步骤2: 检查网络连接...${NC}"
-    if ! check_network_connection; then
-        echo -e "${RED}✗ 网络连接失败！${NC}"
-        echo "请检查网络连接后重试。"
-        read -p "按回车键返回主菜单..."
-        return
-    fi
-    
-    echo -e "${GREEN}✓ 网络连接正常${NC}"
-    echo ""
-    
-    # 步骤3: 备份当前版本
-    echo -e "${CYAN}步骤3: 备份当前版本...${NC}"
+    # 备份当前版本
+    echo -e "${CYAN}步骤1: 备份当前版本${NC}"
     local backup_file="$BACKUP_DIR/steamdeck_toolbox_backup_v${VERSION}_$(date +%Y%m%d_%H%M%S).sh"
     
     if cp "$SCRIPT_PATH" "$backup_file"; then
-        echo -e "${GREEN}✓ 当前版本已备份到: $(basename "$backup_file")${NC}"
+        echo -e "${GREEN}✓ 当前版本已备份到: $backup_file${NC}"
         log "备份当前版本到: $backup_file"
     else
         echo -e "${YELLOW}⚠️  备份失败，继续更新...${NC}"
@@ -336,8 +145,8 @@ update_toolbox() {
     
     echo ""
     
-    # 步骤4: 下载最新版本
-    echo -e "${CYAN}步骤4: 下载最新版本...${NC}"
+    # 切换到用户目录并克隆仓库
+    echo -e "${CYAN}步骤2: 下载最新版本${NC}"
     echo "正在从GitHub下载最新版本..."
     echo "仓库地址: $GITHUB_REPO"
     echo ""
@@ -354,6 +163,7 @@ update_toolbox() {
     fi
     
     # 切换到用户目录
+    echo "切换到用户目录..."
     cd ~/ || {
         echo -e "${RED}✗ 无法切换到用户目录${NC}"
         read -p "按回车键返回主菜单..."
@@ -361,15 +171,17 @@ update_toolbox() {
     }
     
     # 检查是否已经存在仓库目录
-    local temp_repo_dir="$HOME/steamdeck_toolbox_temp"
-    if [ -d "$temp_repo_dir" ]; then
-        echo "删除旧的临时仓库目录..."
-        rm -rf "$temp_repo_dir"
+    if [ -d "steamdeck_toolbox" ]; then
+        echo "检测到已存在的steamdeck_toolbox目录，正在备份并删除..."
+        mv steamdeck_toolbox steamdeck_toolbox_old_$(date +%Y%m%d_%H%M%S) 2>/dev/null || {
+            echo "删除旧目录失败，尝试强制删除..."
+            rm -rf steamdeck_toolbox
+        }
     fi
     
     # 克隆仓库
     echo "正在克隆仓库..."
-    if git clone "$GITHUB_REPO" "$temp_repo_dir" 2>/dev/null; then
+    if git clone "$GITHUB_REPO" 2>/dev/null; then
         echo -e "${GREEN}✓ 仓库克隆完成${NC}"
     else
         echo -e "${RED}✗ 克隆仓库失败！${NC}"
@@ -378,26 +190,36 @@ update_toolbox() {
         return
     fi
     
-    # 步骤5: 检查仓库中的脚本文件
-    echo -e "${CYAN}步骤5: 检查更新文件...${NC}"
+    # 检查新脚本文件
+    echo ""
+    echo -e "${CYAN}步骤3: 检查新脚本${NC}"
     
-    local new_script_path="$temp_repo_dir/steamdeck_toolbox.sh"
+    local new_script_path="$HOME/steamdeck_toolbox/steamdeck_toolbox.sh"
     
     if [ ! -f "$new_script_path" ]; then
-        echo -e "${YELLOW}在仓库中未找到steamdeck_toolbox.sh，尝试查找其他文件...${NC}"
+        echo -e "${YELLOW}在新仓库中未找到steamdeck_toolbox.sh，尝试查找其他文件...${NC}"
         
         # 尝试查找其他可能的脚本文件
-        local found_script=$(find "$temp_repo_dir" -name "*.sh" -type f | head -1)
+        local found_script=$(find "$HOME/steamdeck_toolbox" -name "*.sh" -type f | head -1)
         
         if [ -f "$found_script" ]; then
             new_script_path="$found_script"
             echo "找到脚本文件: $(basename "$new_script_path")"
         else
             echo -e "${RED}✗ 在仓库中未找到脚本文件！${NC}"
-            rm -rf "$temp_repo_dir"
             read -p "按回车键返回主菜单..."
             return
         fi
+    fi
+    
+    # 设置执行权限
+    echo ""
+    echo -e "${CYAN}步骤4: 设置执行权限${NC}"
+    
+    if chmod +x "$new_script_path"; then
+        echo -e "${GREEN}✓ 已设置脚本为可执行${NC}"
+    else
+        echo -e "${YELLOW}⚠️  设置执行权限失败，尝试继续...${NC}"
     fi
     
     # 提取新版本号
@@ -408,76 +230,13 @@ update_toolbox() {
         echo "最新版本: $new_version"
         
         if [ "$VERSION" == "$new_version" ]; then
-            echo -e "${YELLOW}版本相同，但文件可能已更新，继续更新...${NC}"
+            echo -e "${YELLOW}版本相同，但文件可能已更新${NC}"
         else
             echo -e "${GREEN}发现新版本: $new_version${NC}"
         fi
-    else
-        echo -e "${YELLOW}⚠️  无法获取新版本号，继续更新...${NC}"
     fi
     
     echo ""
-    
-    # 步骤6: 替换脚本文件
-    echo -e "${CYAN}步骤6: 替换脚本文件...${NC}"
-    
-    # 备份当前脚本
-    local current_backup="$SCRIPT_PATH.backup"
-    cp "$SCRIPT_PATH" "$current_backup"
-    
-    echo "正在替换脚本文件..."
-    
-    # 复制新脚本到原位置（强制覆盖）
-    if cp -f "$new_script_path" "$SCRIPT_PATH"; then
-        chmod +x "$SCRIPT_PATH"
-        echo -e "${GREEN}✓ 脚本文件替换成功${NC}"
-        
-        # 记录更新日志
-        if [ -n "$new_version" ]; then
-            log "更新脚本成功: $VERSION -> $new_version"
-        else
-            log "更新脚本成功"
-        fi
-    else
-        echo -e "${RED}✗ 脚本文件替换失败！${NC}"
-        echo "正在恢复备份..."
-        
-        # 尝试恢复备份
-        if [ -f "$current_backup" ]; then
-            cp -f "$current_backup" "$SCRIPT_PATH"
-            chmod +x "$SCRIPT_PATH"
-            echo -e "${YELLOW}✓ 已恢复备份${NC}"
-        fi
-        
-        # 清理临时文件
-        rm -rf "$temp_repo_dir"
-        
-        read -p "按回车键返回主菜单..."
-        return
-    fi
-    
-    # 清理备份文件
-    rm -f "$current_backup"
-    
-    # 清理临时仓库
-    echo "清理临时文件..."
-    rm -rf "$temp_repo_dir"
-    
-    echo ""
-    
-    # 步骤7: 更新桌面快捷方式
-    echo -e "${CYAN}步骤7: 更新桌面快捷方式...${NC}"
-    
-    # 删除旧的快捷方式，新的脚本会在下次运行时创建
-    rm -f "$MAIN_LAUNCHER"
-    rm -f "$UPDATE_LAUNCHER"
-    
-    echo -e "${GREEN}✓ 桌面快捷方式已标记为需要更新${NC}"
-    echo "下次运行工具箱时会自动创建新版本的快捷方式。"
-    
-    echo ""
-    
-    # 更新完成
     echo -e "${CYAN}════════════════════════════════════════════════════════${NC}"
     echo -e "${GREEN}              ✓ 更新完成！                          ${NC}"
     echo -e "${CYAN}════════════════════════════════════════════════════════${NC}"
@@ -491,41 +250,16 @@ update_toolbox() {
     
     echo ""
     echo -e "${YELLOW}提示：${NC}"
-    echo "1. 下次运行工具箱时会自动创建新的桌面快捷方式"
-    echo "2. 旧版本备份保存在: $BACKUP_DIR/"
-    echo "3. 更新日志保存在: $LOG_FILE"
-    echo "4. 如有问题，可以手动恢复备份"
+    echo "1. 新版本已下载到: ~/steamdeck_toolbox/"
+    echo "2. 请手动运行新版本脚本:"
+    echo "   cd ~/steamdeck_toolbox/"
+    echo "   ./steamdeck_toolbox.sh"
+    echo "3. 旧版本备份保存在: $BACKUP_DIR/"
     echo ""
     
     log "工具箱更新完成"
     
-    # 提示用户重新运行
-    echo -e "${YELLOW}请重新运行工具箱以使用新版本。${NC}"
-    read -p "按回车键退出更新程序..."
-    exit 0
-}
-
-# 检查网络连接
-check_network_connection() {
-    # 尝试ping一个可靠的服务
-    if ping -c 2 -W 3 8.8.8.8 &> /dev/null; then
-        return 0
-    elif ping -c 2 -W 3 1.1.1.1 &> /dev/null; then
-        return 0
-    else
-        # 尝试连接HTTP网站
-        if command -v curl &> /dev/null; then
-            if curl -s --connect-timeout 5 https://www.baidu.com &> /dev/null; then
-                return 0
-            fi
-        elif command -v wget &> /dev/null; then
-            if wget -q --timeout=5 --tries=1 https://www.baidu.com -O /dev/null; then
-                return 0
-            fi
-        fi
-    fi
-    
-    return 1
+    read -p "按回车键返回主菜单..."
 }
 
 # 从脚本文件中提取版本号
@@ -1189,16 +923,9 @@ main() {
     log "系统: $(uname -a)"
     log "========================================"
 
-    # 检查是否是通过更新参数调用
-    if [ "$1" == "--update" ]; then
-        update_toolbox
-        exit 0
-    fi
-
     # 显示主菜单
     show_main_menu
 }
 
 # 运行主程序
 main "$@"
-
