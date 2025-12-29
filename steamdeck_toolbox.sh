@@ -24,7 +24,6 @@ SCRIPT_NAME="$(basename "$SCRIPT_PATH")"
 
 # 版本信息
 VERSION="1.0.0"
-GITHUB_REPO="https://github.com/Zhucy123/steamdeck_toolbox.git"
 
 # 初始化目录
 init_dirs() {
@@ -82,7 +81,6 @@ show_main_menu() {
         echo -e "${GREEN} 20.  安装Edge浏览器${NC}"
         echo -e "${GREEN} 21.  安装Google浏览器${NC}"
         echo -e "${GREEN} 22.  更新已安装应用${NC}"
-        echo -e "${GREEN} 23.  更新工具箱${NC}"
         echo ""
 
         echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════════════${NC}"
@@ -113,173 +111,12 @@ show_main_menu() {
             20) install_edge ;;
             21) install_chrome ;;
             22) update_installed_apps ;;
-            23) update_toolbox_menu ;;
             *)
                 echo -e "${RED}无效选择，请重新输入！${NC}"
                 sleep 1
                 ;;
         esac
     done
-}
-
-# 23. 更新工具箱（菜单选项）
-update_toolbox_menu() {
-    show_header
-    echo -e "${YELLOW}════════════════ 更新工具箱 ════════════════${NC}"
-    echo ""
-    
-    echo -e "${CYAN}正在更新工具箱...${NC}"
-    echo ""
-    
-    # 备份当前版本
-    echo -e "${CYAN}步骤1: 备份当前版本${NC}"
-    local backup_file="$BACKUP_DIR/steamdeck_toolbox_backup_v${VERSION}_$(date +%Y%m%d_%H%M%S).sh"
-    
-    if cp "$SCRIPT_PATH" "$backup_file"; then
-        echo -e "${GREEN}✓ 当前版本已备份到: $backup_file${NC}"
-        log "备份当前版本到: $backup_file"
-    else
-        echo -e "${YELLOW}⚠️  备份失败，继续更新...${NC}"
-        log "备份当前版本失败"
-    fi
-    
-    echo ""
-    
-    # 切换到用户目录并克隆仓库
-    echo -e "${CYAN}步骤2: 下载最新版本${NC}"
-    echo "正在从GitHub下载最新版本..."
-    echo "仓库地址: $GITHUB_REPO"
-    echo ""
-    
-    # 检查是否已安装git
-    if ! command -v git &> /dev/null; then
-        echo -e "${YELLOW}未找到git，正在尝试安装...${NC}"
-        sudo pacman -Sy git --noconfirm 2>/dev/null || {
-            echo -e "${RED}✗ 安装git失败！请手动安装git后重试。${NC}"
-            read -p "按回车键返回主菜单..."
-            return
-        }
-        echo -e "${GREEN}✓ git安装完成${NC}"
-    fi
-    
-    # 切换到用户目录
-    echo "切换到用户目录..."
-    cd ~/ || {
-        echo -e "${RED}✗ 无法切换到用户目录${NC}"
-        read -p "按回车键返回主菜单..."
-        return
-    }
-    
-    # 检查是否已经存在仓库目录
-    if [ -d "steamdeck_toolbox" ]; then
-        echo "检测到已存在的steamdeck_toolbox目录，正在备份并删除..."
-        mv steamdeck_toolbox steamdeck_toolbox_old_$(date +%Y%m%d_%H%M%S) 2>/dev/null || {
-            echo "删除旧目录失败，尝试强制删除..."
-            rm -rf steamdeck_toolbox
-        }
-    fi
-    
-    # 克隆仓库
-    echo "正在克隆仓库..."
-    if git clone "$GITHUB_REPO" 2>/dev/null; then
-        echo -e "${GREEN}✓ 仓库克隆完成${NC}"
-    else
-        echo -e "${RED}✗ 克隆仓库失败！${NC}"
-        echo "请检查网络连接和仓库地址。"
-        read -p "按回车键返回主菜单..."
-        return
-    fi
-    
-    # 检查新脚本文件
-    echo ""
-    echo -e "${CYAN}步骤3: 检查新脚本${NC}"
-    
-    local new_script_path="$HOME/steamdeck_toolbox/steamdeck_toolbox.sh"
-    
-    if [ ! -f "$new_script_path" ]; then
-        echo -e "${YELLOW}在新仓库中未找到steamdeck_toolbox.sh，尝试查找其他文件...${NC}"
-        
-        # 尝试查找其他可能的脚本文件
-        local found_script=$(find "$HOME/steamdeck_toolbox" -name "*.sh" -type f | head -1)
-        
-        if [ -f "$found_script" ]; then
-            new_script_path="$found_script"
-            echo "找到脚本文件: $(basename "$new_script_path")"
-        else
-            echo -e "${RED}✗ 在仓库中未找到脚本文件！${NC}"
-            read -p "按回车键返回主菜单..."
-            return
-        fi
-    fi
-    
-    # 设置执行权限
-    echo ""
-    echo -e "${CYAN}步骤4: 设置执行权限${NC}"
-    
-    if chmod +x "$new_script_path"; then
-        echo -e "${GREEN}✓ 已设置脚本为可执行${NC}"
-    else
-        echo -e "${YELLOW}⚠️  设置执行权限失败，尝试继续...${NC}"
-    fi
-    
-    # 提取新版本号
-    local new_version=$(extract_version "$new_script_path")
-    
-    if [ -n "$new_version" ]; then
-        echo "当前版本: $VERSION"
-        echo "最新版本: $new_version"
-        
-        if [ "$VERSION" == "$new_version" ]; then
-            echo -e "${YELLOW}版本相同，但文件可能已更新${NC}"
-        else
-            echo -e "${GREEN}发现新版本: $new_version${NC}"
-        fi
-    fi
-    
-    echo ""
-    echo -e "${CYAN}════════════════════════════════════════════════════════${NC}"
-    echo -e "${GREEN}              ✓ 更新完成！                          ${NC}"
-    echo -e "${CYAN}════════════════════════════════════════════════════════${NC}"
-    echo ""
-    
-    if [ -n "$new_version" ] && [ "$VERSION" != "$new_version" ]; then
-        echo -e "${GREEN}工具箱已从 v$VERSION 更新到 v$new_version${NC}"
-    else
-        echo -e "${GREEN}工具箱更新完成${NC}"
-    fi
-    
-    echo ""
-    echo -e "${YELLOW}提示：${NC}"
-    echo "1. 新版本已下载到: ~/steamdeck_toolbox/"
-    echo "2. 请手动运行新版本脚本:"
-    echo "   cd ~/steamdeck_toolbox/"
-    echo "   ./steamdeck_toolbox.sh"
-    echo "3. 旧版本备份保存在: $BACKUP_DIR/"
-    echo ""
-    
-    log "工具箱更新完成"
-    
-    read -p "按回车键返回主菜单..."
-}
-
-# 从脚本文件中提取版本号
-extract_version() {
-    local script_file="$1"
-    
-    # 尝试从脚本开头提取版本号
-    local version=$(grep -E "^#.*[Vv]ersion[[:space:]]*:" "$script_file" | head -1 | grep -o "[0-9]\+\.[0-9]\+\.[0-9]\+")
-    
-    if [ -z "$version" ]; then
-        # 尝试从注释中提取
-        version=$(grep -E "VERSION[[:space:]]*=" "$script_file" | head -1 | grep -o "[0-9]\+\.[0-9]\+\.[0-9]\+")
-    fi
-    
-    if [ -z "$version" ]; then
-        # 尝试从其他格式提取
-        version=$(grep -E "v[0-9]\+\.[0-9]\+\.[0-9]\+" "$script_file" | head -1 | grep -o "[0-9]\+\.[0-9]\+\.[0-9]\+")
-    fi
-    
-    echo "$version"
 }
 
 # ============================================
