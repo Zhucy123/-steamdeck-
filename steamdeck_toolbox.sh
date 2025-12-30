@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Steam Deck 工具箱 v1.0.0
+# Steam Deck 工具箱 v0.0.1内测版
 # 制作人：薯条
 
 # 颜色定义
@@ -24,7 +24,7 @@ SCRIPT_DIR="$(dirname "$SCRIPT_PATH")" # 脚本所在目录
 SCRIPT_NAME="$(basename "$SCRIPT_PATH")" # 脚本文件名
 
 # 版本信息
-VERSION="1.0.0"
+VERSION="0.0.1"
 REPO_URL="https://github.com/Zhucy123/steamdeck_toolbox" # GitHub仓库地址
 
 # 初始化目录
@@ -85,10 +85,10 @@ EOF
 show_header() {
     clear
     echo -e "${CYAN} ${NC}"
-    echo -e "${CYAN}                     steamdeck工具箱 - 版本: $VERSION                                     ${NC}"
+    echo -e "${CYAN}                     steamdeck工具箱 - 版本: 内测版$VERSION                             ${NC}"
     echo -e "${CYAN}                              制作人：薯条                                             ${NC}"
-    echo -e "${CYAN}          按STEAM按键+X按键呼出键盘，如果呼不出来，请查看是否打开并登陆了steam      ${NC}"
-    echo -e "${CYAN}                        意见建议请联系店铺售后客服反馈                                ${NC}"
+    echo -e "${CYAN}          按STEAM按键+X按键呼出键盘，如果呼不出来，请查看是否打开并登陆了steam             ${NC}"
+    echo -e "${CYAN}                        意见建议请联系店铺售后客服反馈                                   ${NC}"
     echo -e "${CYAN} ${NC}"
     echo ""
 }
