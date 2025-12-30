@@ -13,7 +13,6 @@ PURPLE='\033[0;35m'
 NC='\033[0m' # No Color
 
 # 全局变量
-LOG_FILE="$HOME/steamdeck_toolbox.log"
 INSTALL_DIR="$HOME/Applications"
 DESKTOP_DIR="$HOME/Desktop"
 BACKUP_DIR="$HOME/backups"
@@ -33,13 +32,6 @@ init_dirs() {
     mkdir -p "$INSTALL_DIR"
     mkdir -p "$BACKUP_DIR"
     mkdir -p "$TEMP_DIR"
-    touch "$LOG_FILE"
-}
-
-# 日志函数
-log() {
-    local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
-    echo "[$timestamp] $1" >> "$LOG_FILE"
 }
 
 # 创建桌面快捷方式（优化版）
@@ -63,9 +55,8 @@ StartupNotify=true
 Categories=Utility;
 EOF
         chmod +x "$MAIN_LAUNCHER"
-        log "创建了主程序桌面快捷方式: $MAIN_LAUNCHER"
     else
-        log "主程序桌面快捷方式已存在，跳过创建"
+        echo "主程序桌面快捷方式已存在，跳过创建"
     fi
 
     # 2. 创建更新程序快捷方式（在主程序快捷方式之后创建）
@@ -85,9 +76,8 @@ StartupNotify=true
 Categories=Utility;
 EOF
         chmod +x "$UPDATE_LAUNCHER"
-        log "创建了更新程序桌面快捷方式: $UPDATE_LAUNCHER"
     else
-        log "更新程序桌面快捷方式已存在，跳过创建"
+        echo "更新程序桌面快捷方式已存在，跳过创建"
     fi
 }
 
@@ -119,22 +109,24 @@ show_main_menu() {
         echo -e "${GREEN}  6.  修复互通盘${NC}"
         echo -e "${GREEN}  7.  清理hosts缓存${NC}"
         echo -e "${GREEN}  8.  安装UU加速器插件${NC}"
-        echo -e "${GREEN}  9.  安装ToMoon${NC}"
-        echo -e "${GREEN} 10.  安装＆卸载插件商店${NC}"
-        echo -e "${GREEN} 11.  安装＆卸载宝葫芦${NC}"
-        echo -e "${GREEN} 12.  校准摇杆${NC}"
-        echo -e "${GREEN} 13.  安装AnyDesk${NC}"
-        echo -e "${GREEN} 14.  安装ToDesk${NC}"
-        echo -e "${GREEN} 15.  安装WPS Office${NC}"
-        echo -e "${GREEN} 16.  安装QQ${NC}"
-        echo -e "${GREEN} 17.  安装微信${NC}"
-        echo -e "${GREEN} 18.  安装QQ音乐${NC}"
-        echo -e "${GREEN} 19.  安装百度网盘${NC}"
-        echo -e "${GREEN} 20.  安装Edge浏览器${NC}"
-        echo -e "${GREEN} 21.  安装Google浏览器${NC}"
-        echo -e "${GREEN} 22.  更新已安装应用${NC}"
-        echo -e "${GREEN} 23.  卸载已安装应用${NC}"
-        echo -e "${GREEN} 24.  检查工具箱更新${NC}"
+        echo -e "${GREEN}  9.  安装迅游加速器插件${NC}"
+        echo -e "${GREEN} 10.  安装ToMoon${NC}"
+        echo -e "${GREEN} 11.  安装＆卸载插件商店${NC}"
+        echo -e "${GREEN} 12.  安装＆卸载宝葫芦${NC}"
+        echo -e "${GREEN} 13.  校准摇杆${NC}"
+        echo -e "${GREEN} 14.  设置管理员密码${NC}"
+        echo -e "${GREEN} 15.  安装AnyDesk${NC}"
+        echo -e "${GREEN} 16.  安装ToDesk${NC}"
+        echo -e "${GREEN} 17.  安装WPS Office${NC}"
+        echo -e "${GREEN} 18.  安装QQ${NC}"
+        echo -e "${GREEN} 19.  安装微信${NC}"
+        echo -e "${GREEN} 20.  安装QQ音乐${NC}"
+        echo -e "${GREEN} 21.  安装百度网盘${NC}"
+        echo -e "${GREEN} 22.  安装Edge浏览器${NC}"
+        echo -e "${GREEN} 23.  安装Google浏览器${NC}"
+        echo -e "${GREEN} 24.  更新已安装应用${NC}"
+        echo -e "${GREEN} 25.  卸载已安装应用${NC}"
+        echo -e "${GREEN} 26.  检查工具箱更新${NC}"
         echo ""
 
         echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════════════${NC}"
@@ -151,22 +143,24 @@ show_main_menu() {
             6) fix_shared_disk ;;
             7) clear_hosts_cache ;;
             8) install_uu_accelerator ;;
-            9) install_tomoon ;;
-            10) install_remove_plugin_store ;;
-            11) install_remove_baohulu ;;
-            12) calibrate_joystick ;;
-            13) install_anydesk ;;
-            14) install_todesk ;;
-            15) install_wps_office ;;
-            16) install_qq ;;
-            17) install_wechat ;;
-            18) install_qqmusic ;;
-            19) install_baidunetdisk ;;
-            20) install_edge ;;
-            21) install_chrome ;;
-            22) update_installed_apps ;;
-            23) uninstall_apps ;;
-            24) check_for_updates ;;
+            9) install_xunyou_accelerator ;;
+            10) install_tomoon ;;
+            11) install_remove_plugin_store ;;
+            12) install_remove_baohulu ;;
+            13) calibrate_joystick ;;
+            14) set_admin_password ;;
+            15) install_anydesk ;;
+            16) install_todesk ;;
+            17) install_wps_office ;;
+            18) install_qq ;;
+            19) install_wechat ;;
+            20) install_qqmusic ;;
+            21) install_baidunetdisk ;;
+            22) install_edge ;;
+            23) install_chrome ;;
+            24) update_installed_apps ;;
+            25) uninstall_apps ;;
+            26) check_for_updates ;;
             *)
                 echo -e "${RED}无效选择，请重新输入！${NC}"
                 sleep 1
@@ -321,7 +315,6 @@ update_toolbox() {
             exit 0
         else
             echo -e "${YELLOW}发现新版本: $new_version${NC}"
-            log "发现新版本: $new_version (当前版本: $VERSION)"
         fi
     else
         echo -e "${YELLOW}⚠️  无法获取新版本号，继续更新...${NC}"
@@ -362,12 +355,6 @@ update_toolbox() {
     if cp "$new_script_path" "$SCRIPT_PATH"; then
         chmod +x "$SCRIPT_PATH"
         echo -e "${GREEN}✓ 脚本文件替换成功${NC}"
-        
-        if [ -n "$new_version" ]; then
-            log "更新脚本成功: $VERSION -> $new_version"
-        else
-            log "更新脚本成功"
-        fi
     else
         echo -e "${RED}✗ 脚本文件替换失败！${NC}"
         echo "请检查文件权限。"
@@ -402,8 +389,6 @@ update_toolbox() {
     echo -e "${YELLOW}提示：${NC}"
     echo "1. 请重新启动工具箱以应用更新"
     echo ""
-    
-    log "工具箱更新完成"
     
     # 提示用户重新启动
     echo "更新已完成！请重新启动工具箱以使用新版本。"
@@ -480,7 +465,6 @@ show_about() {
     echo "如有问题或建议，请联系店铺售后客服反馈"
     echo ""
 
-    log "查看关于信息"
     read -p "按回车键返回主菜单..."
 }
 
@@ -505,7 +489,6 @@ install_chinese_source() {
 
     echo ""
     echo -e "${YELLOW}重启后生效${NC}"
-    log "安装国内源"
 
     read -p "按回车键返回主菜单..."
 }
@@ -533,7 +516,6 @@ adjust_swap() {
         sudo rm -f /swapfile
         sudo sed -i '/swapfile/d' /etc/fstab 2>/dev/null
         echo -e "${GREEN}✓ 已禁用虚拟内存${NC}"
-        log "禁用虚拟内存"
     else
         echo -e "${CYAN}正在调整虚拟内存为 ${swap_size}GB...${NC}"
 
@@ -566,7 +548,6 @@ adjust_swap() {
 
         echo ""
         echo -e "${GREEN}✓ 虚拟内存已调整为 ${swap_size}GB${NC}"
-        log "调整虚拟内存为 ${swap_size}GB"
     fi
 
     read -p "按回车键返回主菜单..."
@@ -611,7 +592,6 @@ fix_disk_write_error() {
     else
         echo -e "${RED}✗ 未找到磁盘设备: $DISK_DEVICE${NC}"
         echo "请检查设备名称是否正确"
-        log "修复磁盘写入错误失败：未找到设备 $DISK_DEVICE"
         read -p "按回车键返回主菜单..."
         return
     fi
@@ -716,8 +696,6 @@ fix_disk_write_error() {
     echo "2. 建议备份重要数据后再进行磁盘操作"
     echo "3. 如需更彻底的修复，建议使用Windows系统下的磁盘检查工具"
     echo -e "${GREEN}════════════════════════════════════════════════════════${NC}"
-
-    log "修复磁盘写入错误流程完成，设备: $DISK_DEVICE"
 
     read -p "按回车键返回主菜单..."
 }
@@ -875,7 +853,6 @@ EOF
     "$TEMP_DIR/fix_boot.sh"
 
     echo ""
-    log "运行引导修复脚本"
 
     read -p "按回车键返回主菜单..."
 }
@@ -958,8 +935,6 @@ fix_shared_disk() {
     echo ""
     echo -e "${YELLOW}提示：如果没看到GAME盘，请去steam-设置-存储空间，添加一下GAME盘${NC}"
 
-    log "修复互通盘"
-
     read -p "按回车键返回主菜单..."
 }
 
@@ -981,8 +956,6 @@ clear_hosts_cache() {
     echo -e "${GREEN}✓ hosts缓存已清理完成${NC}"
     echo -e "${YELLOW}注意：/etc/hosts文件已被清空，如果需要默认配置，请手动恢复备份${NC}"
 
-    log "清理hosts缓存"
-
     read -p "按回车键返回主菜单..."
 }
 
@@ -998,17 +971,35 @@ install_uu_accelerator() {
     if curl -s uudeck.com | sudo sh; then
         echo ""
         echo -e "${GREEN}✓ UU加速器插件安装完成${NC}"
-        log "安装UU加速器插件 - 使用命令: curl -s uudeck.com | sudo sh"
     else
         echo ""
         echo -e "${RED}✗ UU加速器插件安装失败${NC}"
-        log "安装UU加速器插件失败"
     fi
 
     read -p "按回车键返回主菜单..."
 }
 
-# 9. 安装ToMoon
+# 9. 安装迅游加速器插件
+install_xunyou_accelerator() {
+    show_header
+    echo -e "${YELLOW}════════════════ 安装迅游加速器插件 ════════════════${NC}"
+
+    echo -e "${CYAN}正在安装迅游加速器插件...${NC}"
+    echo "安装命令: curl -s sd.xunyou.com | sudo sh"
+
+    # 执行迅游加速器插件安装命令
+    if curl -s sd.xunyou.com | sudo sh; then
+        echo ""
+        echo -e "${GREEN}✓ 迅游加速器插件安装完成${NC}"
+    else
+        echo ""
+        echo -e "${RED}✗ 迅游加速器插件安装失败${NC}"
+    fi
+
+    read -p "按回车键返回主菜单..."
+}
+
+# 10. 安装ToMoon
 install_tomoon() {
     show_header
     echo -e "${YELLOW}════════════════ 安装ToMoon ════════════════${NC}"
@@ -1020,17 +1011,15 @@ install_tomoon() {
     if curl -L http://i.ohmydeck.net | sh; then
         echo ""
         echo -e "${GREEN}✓ ToMoon安装完成${NC}"
-        log "安装ToMoon - 使用命令: curl -L http://i.ohmydeck.net | sh"
     else
         echo ""
         echo -e "${RED}✗ ToMoon安装失败${NC}"
-        log "安装ToMoon失败"
     fi
 
     read -p "按回车键返回主菜单..."
 }
 
-# 10. 安装＆卸载插件商店
+# 11. 安装＆卸载插件商店
 install_remove_plugin_store() {
     show_header
     echo -e "${YELLOW}════════════════ 安装＆卸载插件商店 ════════════════${NC}"
@@ -1050,11 +1039,9 @@ install_remove_plugin_store() {
             if curl -L http://dl.ohmydeck.net | sh; then
                 echo ""
                 echo -e "${GREEN}✓ 插件商店安装完成${NC}"
-                log "安装插件商店"
             else
                 echo ""
                 echo -e "${RED}✗ 插件商店安装失败${NC}"
-                log "安装插件商店失败"
             fi
             ;;
         2)
@@ -1064,11 +1051,9 @@ install_remove_plugin_store() {
             if sudo flatpak remove decky-loader; then
                 echo ""
                 echo -e "${GREEN}✓ 插件商店卸载完成${NC}"
-                log "卸载插件商店"
             else
                 echo ""
                 echo -e "${RED}✗ 插件商店卸载失败${NC}"
-                log "卸载插件商店失败"
             fi
             ;;
         *)
@@ -1079,7 +1064,7 @@ install_remove_plugin_store() {
     read -p "按回车键返回主菜单..."
 }
 
-# 11. 安装＆卸载宝葫芦
+# 12. 安装＆卸载宝葫芦
 install_remove_baohulu() {
     show_header
     echo -e "${YELLOW}════════════════ 安装＆卸载宝葫芦 ════════════════${NC}"
@@ -1099,11 +1084,9 @@ install_remove_baohulu() {
             if curl -s -L https://i.hulu.deckz.fun | sudo HULU_CHANNEL=Preview sh -; then
                 echo ""
                 echo -e "${GREEN}✓ 宝葫芦安装完成${NC}"
-                log "安装宝葫芦"
             else
                 echo ""
                 echo -e "${RED}✗ 宝葫芦安装失败${NC}"
-                log "安装宝葫芦失败"
             fi
             ;;
         2)
@@ -1113,11 +1096,9 @@ install_remove_baohulu() {
             if curl -s -L https://i.hulu.deckz.fun/u.sh | sudo sh -; then
                 echo ""
                 echo -e "${GREEN}✓ 宝葫芦卸载完成${NC}"
-                log "卸载宝葫芦"
             else
                 echo ""
                 echo -e "${RED}✗ 宝葫芦卸载失败${NC}"
-                log "卸载宝葫芦失败"
             fi
             ;;
         *)
@@ -1128,7 +1109,7 @@ install_remove_baohulu() {
     read -p "按回车键返回主菜单..."
 }
 
-# 12. 校准摇杆
+# 13. 校准摇杆
 calibrate_joystick() {
     show_header
     echo -e "${YELLOW}════════════════ 校准摇杆 ════════════════${NC}"
@@ -1139,18 +1120,51 @@ calibrate_joystick() {
     if thumbstick_cal; then
         echo ""
         echo -e "${GREEN}✓ 摇杆校准完成${NC}"
-        log "校准摇杆"
     else
         echo ""
         echo -e "${RED}✗ 摇杆校准失败${NC}"
         echo "请确保系统中已安装摇杆校准工具"
-        log "摇杆校准失败"
     fi
 
     read -p "按回车键返回主菜单..."
 }
 
-# 13. 安装AnyDesk
+# 14. 设置管理员密码
+set_admin_password() {
+    show_header
+    echo -e "${YELLOW}════════════════ 设置管理员密码 ════════════════${NC}"
+
+    echo -e "${CYAN}正在检查是否已设置管理员密码...${NC}"
+    
+    # 检查是否已经设置密码
+    if sudo -n true 2>/dev/null; then
+        echo -e "${GREEN}✓ 管理员密码已经设置${NC}"
+        echo "无需重复设置"
+    else
+        echo -e "${YELLOW}检测到未设置管理员密码或密码已过期${NC}"
+        echo ""
+        echo "现在开始设置管理员密码..."
+        echo "请按照提示输入您要设置的密码"
+        echo ""
+        
+        # 执行设置密码
+        sudo passwd
+        
+        if [ $? -eq 0 ]; then
+            echo ""
+            echo -e "${GREEN}✓ 管理员密码设置完成${NC}"
+            echo "请妥善保管您的密码"
+        else
+            echo ""
+            echo -e "${RED}✗ 管理员密码设置失败${NC}"
+            echo "请检查输入是否正确"
+        fi
+    fi
+
+    read -p "按回车键返回主菜单..."
+}
+
+# 15. 安装AnyDesk
 install_anydesk() {
     show_header
     echo -e "${YELLOW}════════════════ 安装AnyDesk ════════════════${NC}"
@@ -1200,7 +1214,6 @@ EOF
 
                 chmod +x "$DESKTOP_FILE"
                 echo -e "${GREEN}✓ 桌面快捷方式已创建${NC}"
-                log "为已安装的AnyDesk创建桌面快捷方式，包名: $INSTALLED_PACKAGE"
                 ;;
             2)
                 # 卸载AnyDesk
@@ -1209,10 +1222,8 @@ EOF
                     echo -e "${GREEN}✓ AnyDesk卸载完成${NC}"
                     # 删除桌面快捷方式
                     rm -f "$DESKTOP_FILE"
-                    log "卸载AnyDesk，包名: $INSTALLED_PACKAGE"
                 else
                     echo -e "${RED}✗ AnyDesk卸载失败${NC}"
-                    log "卸载AnyDesk失败"
                 fi
                 ;;
             *)
@@ -1271,7 +1282,6 @@ EOF
         echo -e "${YELLOW}无法通过Flatpak安装AnyDesk。${NC}"
         echo "请尝试其他安装方法或检查网络连接。"
         
-        log "AnyDesk安装失败：Flathub中未找到包"
         read -p "按回车键返回主菜单..."
         return
     fi
@@ -1300,12 +1310,10 @@ EOF
     echo -e "${GREEN}✓ 您也可以在应用菜单中找到AnyDesk${NC}"
     echo -e "${GREEN}════════════════════════════════════════════════════════${NC}"
 
-    log "安装AnyDesk成功，包名: $FINAL_PACKAGE"
-
     read -p "按回车键返回主菜单..."
 }
 
-# 14. 安装ToDesk
+# 16. 安装ToDesk
 install_todesk() {
     show_header
     echo -e "${YELLOW}════════════════ 安装ToDesk ════════════════${NC}"
@@ -1325,12 +1333,10 @@ install_todesk() {
     echo ""
     echo -e "${YELLOW}请在桌面上运行'todesk安装'或'todesk重新安装'的文件来完成安装${NC}"
 
-    log "安装ToDesk"
-
     read -p "按回车键返回主菜单..."
 }
 
-# 15. 安装WPS Office
+# 17. 安装WPS Office
 install_wps_office() {
     show_header
     echo -e "${YELLOW}════════════════ 安装WPS Office ════════════════${NC}"
@@ -1377,7 +1383,6 @@ EOF
 
                 chmod +x "$DESKTOP_DIR/WPS_Office.desktop"
                 echo -e "${GREEN}✓ 桌面快捷方式已创建${NC}"
-                log "为已安装的WPS Office创建桌面快捷方式，包名: $INSTALLED_WPS"
                 ;;
             2)
                 # 卸载WPS Office
@@ -1386,10 +1391,8 @@ EOF
                     echo -e "${GREEN}✓ WPS Office卸载完成${NC}"
                     # 删除桌面快捷方式
                     rm -f "$DESKTOP_DIR/WPS_Office.desktop"
-                    log "卸载WPS Office，包名: $INSTALLED_WPS"
                 else
                     echo -e "${RED}✗ WPS Office卸载失败${NC}"
-                    log "卸载WPS Office失败"
                 fi
                 ;;
             *)
@@ -1467,7 +1470,6 @@ EOF
         echo -e "${YELLOW}无法通过Flatpak安装WPS Office。${NC}"
         echo "请尝试其他安装方法或检查网络连接。"
         
-        log "WPS Office安装失败：Flathub中未找到包"
         read -p "按回车键返回主菜单..."
         return
     fi
@@ -1496,12 +1498,10 @@ EOF
     echo -e "${GREEN}✓ 您也可以在应用菜单中找到WPS Office${NC}"
     echo -e "${GREEN}════════════════════════════════════════════════════════${NC}"
 
-    log "安装WPS Office成功，包名: $FINAL_PACKAGE"
-
     read -p "按回车键返回主菜单..."
 }
 
-# 16. 安装QQ
+# 18. 安装QQ
 install_qq() {
     show_header
     echo -e "${YELLOW}════════════════ 安装QQ ════════════════${NC}"
@@ -1551,7 +1551,6 @@ EOF
 
                 chmod +x "$DESKTOP_FILE"
                 echo -e "${GREEN}✓ 桌面快捷方式已创建${NC}"
-                log "为已安装的QQ创建桌面快捷方式，包名: $INSTALLED_PACKAGE"
                 ;;
             2)
                 # 卸载QQ
@@ -1560,10 +1559,8 @@ EOF
                     echo -e "${GREEN}✓ QQ卸载完成${NC}"
                     # 删除桌面快捷方式
                     rm -f "$DESKTOP_FILE"
-                    log "卸载QQ，包名: $INSTALLED_PACKAGE"
                 else
                     echo -e "${RED}✗ QQ卸载失败${NC}"
-                    log "卸载QQ失败"
                 fi
                 ;;
             *)
@@ -1627,7 +1624,6 @@ EOF
         echo -e "${YELLOW}无法通过Flatpak安装QQ。${NC}"
         echo "请尝试其他安装方法或检查网络连接。"
         
-        log "QQ安装失败：Flathub中未找到包"
         read -p "按回车键返回主菜单..."
         return
     fi
@@ -1656,12 +1652,10 @@ EOF
     echo -e "${GREEN}✓ 您也可以在应用菜单中找到QQ${NC}"
     echo -e "${GREEN}════════════════════════════════════════════════════════${NC}"
 
-    log "安装QQ成功，包名: $FINAL_PACKAGE"
-
     read -p "按回车键返回主菜单..."
 }
 
-# 17. 安装微信
+# 19. 安装微信
 install_wechat() {
     show_header
     echo -e "${YELLOW}════════════════ 安装微信 ════════════════${NC}"
@@ -1711,7 +1705,6 @@ EOF
 
                 chmod +x "$DESKTOP_FILE"
                 echo -e "${GREEN}✓ 桌面快捷方式已创建${NC}"
-                log "为已安装的微信创建桌面快捷方式，包名: $INSTALLED_PACKAGE"
                 ;;
             2)
                 # 卸载微信
@@ -1720,10 +1713,8 @@ EOF
                     echo -e "${GREEN}✓ 微信卸载完成${NC}"
                     # 删除桌面快捷方式
                     rm -f "$DESKTOP_FILE"
-                    log "卸载微信，包名: $INSTALLED_PACKAGE"
                 else
                     echo -e "${RED}✗ 微信卸载失败${NC}"
-                    log "卸载微信失败"
                 fi
                 ;;
             *)
@@ -1787,7 +1778,6 @@ EOF
         echo -e "${YELLOW}无法通过Flatpak安装微信。${NC}"
         echo "请尝试其他安装方法或检查网络连接。"
         
-        log "微信安装失败：Flathub中未找到包"
         read -p "按回车键返回主菜单..."
         return
     fi
@@ -1816,12 +1806,10 @@ EOF
     echo -e "${GREEN}✓ 您也可以在应用菜单中找到微信${NC}"
     echo -e "${GREEN}════════════════════════════════════════════════════════${NC}"
 
-    log "安装微信成功，包名: $FINAL_PACKAGE"
-
     read -p "按回车键返回主菜单..."
 }
 
-# 18. 安装QQ音乐
+# 20. 安装QQ音乐
 install_qqmusic() {
     show_header
     echo -e "${YELLOW}════════════════ 安装QQ音乐 ════════════════${NC}"
@@ -1871,7 +1859,6 @@ EOF
 
                 chmod +x "$DESKTOP_FILE"
                 echo -e "${GREEN}✓ 桌面快捷方式已创建${NC}"
-                log "为已安装的QQ音乐创建桌面快捷方式，包名: $INSTALLED_PACKAGE"
                 ;;
             2)
                 # 卸载QQ音乐
@@ -1880,10 +1867,8 @@ EOF
                     echo -e "${GREEN}✓ QQ音乐卸载完成${NC}"
                     # 删除桌面快捷方式
                     rm -f "$DESKTOP_FILE"
-                    log "卸载QQ音乐，包名: $INSTALLED_PACKAGE"
                 else
                     echo -e "${RED}✗ QQ音乐卸载失败${NC}"
-                    log "卸载QQ音乐失败"
                 fi
                 ;;
             *)
@@ -1947,7 +1932,6 @@ EOF
         echo -e "${YELLOW}无法通过Flatpak安装QQ音乐。${NC}"
         echo "请尝试其他安装方法或检查网络连接。"
         
-        log "QQ音乐安装失败：Flathub中未找到包"
         read -p "按回车键返回主菜单..."
         return
     fi
@@ -1976,12 +1960,10 @@ EOF
     echo -e "${GREEN}✓ 您也可以在应用菜单中找到QQ音乐${NC}"
     echo -e "${GREEN}════════════════════════════════════════════════════════${NC}"
 
-    log "安装QQ音乐成功，包名: $FINAL_PACKAGE"
-
     read -p "按回车键返回主菜单..."
 }
 
-# 19. 安装百度网盘
+# 21. 安装百度网盘
 install_baidunetdisk() {
     show_header
     echo -e "${YELLOW}════════════════ 安装百度网盘 ════════════════${NC}"
@@ -2031,7 +2013,6 @@ EOF
 
                 chmod +x "$DESKTOP_FILE"
                 echo -e "${GREEN}✓ 桌面快捷方式已创建${NC}"
-                log "为已安装的百度网盘创建桌面快捷方式，包名: $INSTALLED_PACKAGE"
                 ;;
             2)
                 # 卸载百度网盘
@@ -2040,10 +2021,8 @@ EOF
                     echo -e "${GREEN}✓ 百度网盘卸载完成${NC}"
                     # 删除桌面快捷方式
                     rm -f "$DESKTOP_FILE"
-                    log "卸载百度网盘，包名: $INSTALLED_PACKAGE"
                 else
                     echo -e "${RED}✗ 百度网盘卸载失败${NC}"
-                    log "卸载百度网盘失败"
                 fi
                 ;;
             *)
@@ -2107,7 +2086,6 @@ EOF
         echo -e "${YELLOW}无法通过Flatpak安装百度网盘。${NC}"
         echo "请尝试其他安装方法或检查网络连接。"
         
-        log "百度网盘安装失败：Flathub中未找到包"
         read -p "按回车键返回主菜单..."
         return
     fi
@@ -2136,12 +2114,10 @@ EOF
     echo -e "${GREEN}✓ 您也可以在应用菜单中找到百度网盘${NC}"
     echo -e "${GREEN}════════════════════════════════════════════════════════${NC}"
 
-    log "安装百度网盘成功，包名: $FINAL_PACKAGE"
-
     read -p "按回车键返回主菜单..."
 }
 
-# 20. 安装Edge浏览器
+# 22. 安装Edge浏览器
 install_edge() {
     show_header
     echo -e "${YELLOW}════════════════ 安装Edge浏览器 ════════════════${NC}"
@@ -2191,7 +2167,6 @@ EOF
 
                 chmod +x "$DESKTOP_FILE"
                 echo -e "${GREEN}✓ 桌面快捷方式已创建${NC}"
-                log "为已安装的Edge浏览器创建桌面快捷方式，包名: $INSTALLED_PACKAGE"
                 ;;
             2)
                 # 卸载Edge浏览器
@@ -2200,10 +2175,8 @@ EOF
                     echo -e "${GREEN}✓ Edge浏览器卸载完成${NC}"
                     # 删除桌面快捷方式
                     rm -f "$DESKTOP_FILE"
-                    log "卸载Edge浏览器，包名: $INSTALLED_PACKAGE"
                 else
                     echo -e "${RED}✗ Edge浏览器卸载失败${NC}"
-                    log "卸载Edge浏览器失败"
                 fi
                 ;;
             *)
@@ -2267,7 +2240,6 @@ EOF
         echo -e "${YELLOW}无法通过Flatpak安装Edge浏览器。${NC}"
         echo "请尝试其他安装方法或检查网络连接。"
         
-        log "Edge浏览器安装失败：Flathub中未找到包"
         read -p "按回车键返回主菜单..."
         return
     fi
@@ -2296,12 +2268,10 @@ EOF
     echo -e "${GREEN}✓ 您也可以在应用菜单中找到Edge浏览器${NC}"
     echo -e "${GREEN}════════════════════════════════════════════════════════${NC}"
 
-    log "安装Edge浏览器成功，包名: $FINAL_PACKAGE"
-
     read -p "按回车键返回主菜单..."
 }
 
-# 21. 安装Google浏览器
+# 23. 安装Google浏览器
 install_chrome() {
     show_header
     echo -e "${YELLOW}════════════════ 安装Google浏览器 ════════════════${NC}"
@@ -2351,7 +2321,6 @@ EOF
 
                 chmod +x "$DESKTOP_FILE"
                 echo -e "${GREEN}✓ 桌面快捷方式已创建${NC}"
-                log "为已安装的Google浏览器创建桌面快捷方式，包名: $INSTALLED_PACKAGE"
                 ;;
             2)
                 # 卸载Google浏览器
@@ -2360,10 +2329,8 @@ EOF
                     echo -e "${GREEN}✓ Google浏览器卸载完成${NC}"
                     # 删除桌面快捷方式
                     rm -f "$DESKTOP_FILE"
-                    log "卸载Google浏览器，包名: $INSTALLED_PACKAGE"
                 else
                     echo -e "${RED}✗ Google浏览器卸载失败${NC}"
-                    log "卸载Google浏览器失败"
                 fi
                 ;;
             *)
@@ -2427,7 +2394,6 @@ EOF
         echo -e "${YELLOW}无法通过Flatpak安装Google浏览器。${NC}"
         echo "请尝试其他安装方法或检查网络连接。"
         
-        log "Google浏览器安装失败：Flathub中未找到包"
         read -p "按回车键返回主菜单..."
         return
     fi
@@ -2456,12 +2422,10 @@ EOF
     echo -e "${GREEN}✓ 您也可以在应用菜单中找到Google浏览器${NC}"
     echo -e "${GREEN}════════════════════════════════════════════════════════${NC}"
 
-    log "安装Google浏览器成功，包名: $FINAL_PACKAGE"
-
     read -p "按回车键返回主菜单..."
 }
 
-# 22. 更新已安装应用
+# 24. 更新已安装应用
 update_installed_apps() {
     show_header
     echo -e "${YELLOW}════════════════ 更新已安装应用 ════════════════${NC}"
@@ -2576,15 +2540,12 @@ update_app_by_name() {
         
         if flatpak update "$installed_package" -y 2>/dev/null; then
             echo -e "${GREEN}✓ $app_name 更新完成${NC}"
-            log "更新$app_name成功，包名: $installed_package"
         else
             echo -e "${YELLOW}⚠️  $app_name 更新过程中出现错误${NC}"
-            log "更新$app_name失败，包名: $installed_package"
         fi
     else
         echo -e "${YELLOW}⚠️  未检测到已安装的$app_name${NC}"
         echo "请先安装$app_name后再尝试更新。"
-        log "更新$appname失败：未找到已安装的包"
     fi
 }
 
@@ -2601,14 +2562,12 @@ update_all_apps() {
     
     if [ $? -eq 0 ]; then
         echo -e "${GREEN}✓ 所有应用更新完成${NC}"
-        log "更新所有应用成功"
     else
         echo -e "${YELLOW}⚠️  应用更新过程中出现错误${NC}"
-        log "更新所有应用失败"
     fi
 }
 
-# 23. 卸载已安装应用
+# 25. 卸载已安装应用
 uninstall_apps() {
     show_header
     echo -e "${YELLOW}════════════════ 卸载已安装应用 ════════════════${NC}"
@@ -2711,11 +2670,8 @@ uninstall_app_by_name() {
                 rm -f "$desktop_file"
                 echo -e "${GREEN}✓ 桌面快捷方式已删除${NC}"
             fi
-            
-            log "卸载$app_name成功，包名: $installed_package"
         else
             echo -e "${RED}✗ $app_name 卸载失败${NC}"
-            log "卸载$app_name失败，包名: $installed_package"
         fi
     else
         echo -e "${YELLOW}⚠️  未检测到已安装的$app_name${NC}"
@@ -2731,8 +2687,6 @@ uninstall_app_by_name() {
                 echo -e "${GREEN}✓ 桌面快捷方式已删除${NC}"
             fi
         fi
-        
-        log "尝试卸载$appname但未找到已安装的包"
     fi
     
     read -p "按回车键返回..."
@@ -2745,13 +2699,6 @@ uninstall_app_by_name() {
 main() {
     # 初始化目录
     init_dirs
-
-    # 记录启动日志
-    log "========================================"
-    log "启动 steamdeck工具箱 v$VERSION"
-    log "用户: $USER"
-    log "系统: $(uname -a)"
-    log "========================================"
 
     # 检查是否是通过更新参数调用
     if [ "$1" == "--update" ]; then
