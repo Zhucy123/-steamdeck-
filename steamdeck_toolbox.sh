@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Steam Deck 工具箱 v1.0.0
+# Steam Deck 工具箱 v1.0.1
 # 制作人：薯条＆DeepSeek
 
 # 颜色定义
@@ -24,7 +24,7 @@ SCRIPT_DIR="$(dirname "$SCRIPT_PATH")" # 脚本所在目录
 SCRIPT_NAME="$(basename "$SCRIPT_PATH")" # 脚本文件名
 
 # 版本信息
-VERSION="1.0.0"
+VERSION="1.0.1"
 REPO_URL="https://github.com/Zhucy123/steamdeck_toolbox" # GitHub仓库地址
 REPO_CDN_URLS=(
     "https://githubfast.com/Zhucy123/steamdeck_toolbox"
@@ -43,47 +43,17 @@ init_dirs() {
     mkdir -p "$TEMP_DIR"
 }
 
-# 静默检测系统类型（单系统或双系统）
+# 静默检测系统类型（单系统或双系统）- 修改为检查Game目录
 detect_system_type() {
     echo "正在检测系统类型..."
 
-    # 方法1: 检查引导相关文件
-    local boot_entries=0
-
-    # 检查efibootmgr输出中的引导项数量
-    if command -v efibootmgr &> /dev/null; then
-        boot_entries=$(efibootmgr 2>/dev/null | grep -c "Boot[0-9A-F][0-9A-F][0-9A-F][0-9A-F]")
-    fi
-
-    # 方法2: 检查引导分区内容
-    local efi_dirs=0
-    if [ -d "/boot/efi/EFI" ]; then
-        efi_dirs=$(find /boot/efi/EFI -maxdepth 1 -type d 2>/dev/null | wc -l)
-        efi_dirs=$((efi_dirs - 1)) # 减去目录本身
-    fi
-
-    # 方法3: 检查是否有Windows相关文件
-    local has_windows=0
-    if [ -d "/boot/efi/EFI/Microsoft" ] || [ -d "/boot/efi/EFI/Boot" ] || \
-       [ -f "/boot/efi/EFI/Microsoft/Boot/bootmgfw.efi" ] || \
-       [ -d "/mnt/windows" ] || [ -d "/run/media/deck/Windows" ]; then
-        has_windows=1
-    fi
-
-    # 方法4: 检查是否有Clover引导
-    local has_clover=0
-    if [ -d "/boot/efi/EFI/CLOVER" ] || [ -d "/boot/efi/EFI/Clover" ] || \
-       command -v efibootmgr &> /dev/null && efibootmgr 2>/dev/null | grep -i "CLOVER" &> /dev/null; then
-        has_clover=1
-    fi
-
-    # 判断逻辑
-    if [ $has_windows -eq 1 ] || [ $has_clover -eq 1 ] || [ $boot_entries -gt 2 ] || [ $efi_dirs -gt 2 ]; then
+    # 检查是否存在 /run/media/deck/Game/ 目录
+    if [ -d "/run/media/deck/Game" ]; then
         SYSTEM_TYPE="dual"
-        echo "检测到双系统配置"
+        echo "检测到双系统配置（存在Game目录）"
     else
         SYSTEM_TYPE="single"
-        echo "检测到单系统配置"
+        echo "检测到单系统配置（不存在Game目录）"
     fi
 }
 
@@ -152,7 +122,7 @@ show_main_menu() {
 
         # 显示系统类型信息
         if [ "$SYSTEM_TYPE" == "dual" ]; then
-            echo -e "${GREEN}当前系统: 双系统 (检测到Windows/Clover引导)${NC}"
+            echo -e "${GREEN}当前系统: 双系统 (检测到Game目录)${NC}"
         else
             echo -e "${YELLOW}当前系统: 单系统 (仅SteamOS)${NC}"
         fi
@@ -260,15 +230,19 @@ show_main_menu() {
         echo -e "${GREEN}  $menu_counter.  安装Google浏览器${NC}"
         menu_counter=$((menu_counter + 1))
 
-        # 24. 更新已安装应用（始终显示）
+        # 24. 清理Steam缓存（着色器/兼容数据）（始终显示）- 新增功能
+        echo -e "${GREEN}  $menu_counter.  清理Steam缓存（着色器/兼容数据）${NC}"
+        menu_counter=$((menu_counter + 1))
+
+        # 25. 更新已安装应用（始终显示）
         echo -e "${GREEN}  $menu_counter.  更新已安装应用${NC}"
         menu_counter=$((menu_counter + 1))
 
-        # 25. 卸载已安装应用（始终显示）
+        # 26. 卸载已安装应用（始终显示）
         echo -e "${GREEN}  $menu_counter.  卸载已安装应用${NC}"
         menu_counter=$((menu_counter + 1))
 
-        # 26. 检查工具箱更新（始终显示）
+        # 27. 检查工具箱更新（始终显示）
         echo -e "${GREEN}  $menu_counter.  检查工具箱更新${NC}"
 
         echo ""
@@ -300,7 +274,7 @@ map_choice_to_function() {
             3) adjust_swap ;;
             4) fix_disk_write_error ;;
 
-            # 5-24项需要向后偏移2位（因为跳过了5、6两项）
+            # 5-25项需要向后偏移2位（因为跳过了5、6两项）
             5) clear_hosts_cache ;;
             6) install_uu_accelerator ;;
             7) install_xunyou_accelerator ;;
@@ -318,9 +292,10 @@ map_choice_to_function() {
             19) install_baidunetdisk ;;
             20) install_edge ;;
             21) install_chrome ;;
-            22) update_installed_apps ;;
-            23) uninstall_apps ;;
-            24) check_for_updates ;;
+            22) steamdeck_cache_manager ;;
+            23) update_installed_apps ;;
+            24) uninstall_apps ;;
+            25) check_for_updates ;;
             *)
                 echo -e "${RED}无效选择，请重新输入！${NC}"
                 sleep 1
@@ -352,9 +327,10 @@ map_choice_to_function() {
             21) install_baidunetdisk ;;
             22) install_edge ;;
             23) install_chrome ;;
-            24) update_installed_apps ;;
-            25) uninstall_apps ;;
-            26) check_for_updates ;;
+            24) steamdeck_cache_manager ;;
+            25) update_installed_apps ;;
+            26) uninstall_apps ;;
+            27) check_for_updates ;;
             *)
                 echo -e "${RED}无效选择，请重新输入！${NC}"
                 sleep 1
@@ -2655,7 +2631,624 @@ EOF
     read -p "按回车键返回主菜单..."
 }
 
-# 24. 更新已安装应用
+# 24. Steam Deck缓存管理器
+steamdeck_cache_manager() {
+    show_header
+    echo -e "${YELLOW}════════════════ Steam Deck 缓存管理器 ════════════════${NC}"
+    echo ""
+    
+    echo "正在启动 Steam Deck 缓存管理器..."
+    echo "该功能需要图形界面支持，请确保您在桌面模式下运行。"
+    echo ""
+    
+    # 检查是否在桌面模式下
+    if [ -z "$DISPLAY" ]; then
+        echo -e "${RED}错误：未检测到图形界面环境。${NC}"
+        echo "请确保在桌面模式下运行此功能。"
+        echo ""
+        read -p "按回车键返回主菜单..."
+        return
+    fi
+    
+    # 检查zenity是否安装
+    if ! command -v zenity &> /dev/null; then
+        echo -e "${YELLOW}未找到zenity工具，正在尝试安装...${NC}"
+        
+        # 尝试安装zenity
+        if command -v pacman &> /dev/null; then
+            echo "正在安装zenity..."
+            sudo pacman -Sy --noconfirm zenity
+        elif command -v apt &> /dev/null; then
+            echo "正在安装zenity..."
+            sudo apt update && sudo apt install -y zenity
+        else
+            echo -e "${RED}无法自动安装zenity，请手动安装zenity后再试。${NC}"
+            echo "安装命令: sudo pacman -S zenity 或 sudo apt install zenity"
+            echo ""
+            read -p "按回车键返回主菜单..."
+            return
+        fi
+        
+        # 再次检查zenity是否安装成功
+        if ! command -v zenity &> /dev/null; then
+            echo -e "${RED}✗ Zenity安装失败！${NC}"
+            echo ""
+            read -p "按回车键返回主菜单..."
+            return
+        fi
+    fi
+    
+    echo -e "${GREEN}✓ 环境检查完成，启动缓存管理器...${NC}"
+    echo ""
+    
+    # 执行缓存管理器
+    exec_steamdeck_cache_manager
+}
+
+# 执行缓存管理器主程序
+exec_steamdeck_cache_manager() {
+    # 缓存管理器配置
+    local live=1
+    local tmp_dir="$TEMP_DIR/steamdeck_cache_manager"
+    local steamapps_dir="/home/deck/.local/share/Steam/steamapps"
+    local cache_type="shadercache"
+    
+    # 创建临时目录
+    function create_temp_dirs() {
+        mkdir -p "$tmp_dir"
+        echo "临时目录: $tmp_dir"
+    }
+    
+    # 检查环境
+    function check_environment() {
+        if [ ! -d "$steamapps_dir" ]; then
+            zenity --error --width=400 \
+                --text="找不到Steam目录: $steamapps_dir\n请确保Steam已安装且正在运行。"
+            return 1
+        fi
+
+        if [ ! -d "$steamapps_dir/shadercache" ] && [ ! -d "$steamapps_dir/compatdata" ]; then
+            zenity --warning --width=400 \
+                --text="在 $steamapps_dir 中找不到缓存目录。\n可能您的缓存位置不同或尚未生成缓存。"
+        fi
+        return 0
+    }
+    
+    # 查找所有Steam库目录
+    function find_steam_libraries() {
+        local libraries=()
+
+        # 首先添加默认库
+        if [ -d "$steamapps_dir" ]; then
+            libraries+=("$steamapps_dir")
+        fi
+
+        # 从libraryfolders.vdf中查找其他库
+        if [ -f "$steamapps_dir/libraryfolders.vdf" ]; then
+            # 使用更简单的方法解析VDF文件，避免grep警告
+            while read -r line; do
+                if [[ "$line" =~ \"path\"[[:space:]]*\"([^\"]*)\" ]]; then
+                    local path="${BASH_REMATCH[1]}"
+                    if [ -d "$path" ]; then
+                        local library_path="$path/steamapps"
+                        if [ -d "$library_path" ] && [ "$library_path" != "$steamapps_dir" ]; then
+                            libraries+=("$library_path")
+                        fi
+                    fi
+                fi
+            done < "$steamapps_dir/libraryfolders.vdf"
+        fi
+
+        echo "${libraries[@]}"
+    }
+    
+    # 获取游戏安装信息
+    function get_game_install_info() {
+        local app_id="$1"
+        local libraries=($(find_steam_libraries))
+
+        for lib in "${libraries[@]}"; do
+            local manifest="$lib/appmanifest_${app_id}.acf"
+            if [ -f "$manifest" ]; then
+                # 从manifest文件中提取游戏名称和安装目录
+                local game_name=$(grep '"name"' "$manifest" | cut -d'"' -f4)
+                local install_dir=$(grep '"installdir"' "$manifest" | cut -d'"' -f4)
+
+                if [ -n "$game_name" ] && [ -n "$install_dir" ]; then
+                    # 查找游戏实际安装路径
+                    local game_path="$lib/common/$install_dir"
+                    if [ -d "$game_path" ]; then
+                        echo "$game_name|$game_path"
+                        return 0
+                    fi
+                fi
+            fi
+        done
+
+        echo "Unknown|Unknown"
+        return 1
+    }
+    
+    # 获取删除列表（着色器缓存或兼容数据）
+    function get_delete_list() {
+        local cache_type="$1"
+
+        # 清空临时文件
+        rm -f "$tmp_dir/delete_list.txt" 2>/dev/null
+
+        # 检查缓存目录是否存在
+        if [ ! -d "$steamapps_dir/$cache_type" ]; then
+            echo "FALSE|0|0|No $cache_type directory found|N/A|$steamapps_dir/$cache_type" > "$tmp_dir/delete_list.txt"
+            return
+        fi
+
+        # 遍历缓存目录
+        local count=0
+        for cache_dir in "$steamapps_dir/$cache_type"/*; do
+            if [ -d "$cache_dir" ]; then
+                local app_id=$(basename "$cache_dir")
+
+                # 跳过非数字目录（如Proton版本）
+                if [[ ! "$app_id" =~ ^[0-9]+$ ]]; then
+                    continue
+                fi
+
+                # 计算大小
+                local size=$(du -sm "$cache_dir" 2>/dev/null | cut -f1)
+                if [ -z "$size" ] || [ "$size" -eq 0 ]; then
+                    continue
+                fi
+
+                # 获取游戏信息
+                local game_info=$(get_game_install_info "$app_id")
+                local game_name=$(echo "$game_info" | cut -d'|' -f1)
+                local game_path=$(echo "$game_info" | cut -d'|' -f2)
+
+                # 判断状态
+                local status="Unknown"
+                if [ "$game_name" != "Unknown" ] && [ -d "$game_path" ]; then
+                    status="Installed"
+                elif [ "$game_name" != "Unknown" ]; then
+                    status="Uninstalled"
+                fi
+
+                # 添加到列表
+                echo "FALSE|$size|$app_id|$game_name|$status|$cache_dir" >> "$tmp_dir/delete_list.txt"
+                count=$((count+1))
+            fi
+        done
+
+        # 如果没有找到任何缓存
+        if [ $count -eq 0 ]; then
+            echo "FALSE|0|0|No $cache_type found|N/A|$steamapps_dir/$cache_type" > "$tmp_dir/delete_list.txt"
+        fi
+    }
+    
+    # 获取移动列表（着色器缓存或兼容数据）
+    function get_move_list() {
+        local cache_type="$1"
+
+        # 清空临时文件
+        rm -f "$tmp_dir/move_list.txt" 2>/dev/null
+
+        # 检查缓存目录是否存在
+        if [ ! -d "$steamapps_dir/$cache_type" ]; then
+            echo "FALSE|0|0|No $cache_type directory found|N/A|N/A" > "$tmp_dir/move_list.txt"
+            return
+        fi
+
+        # 查找所有已安装的游戏（在非默认位置）
+        local libraries=($(find_steam_libraries))
+        local count=0
+
+        for lib in "${libraries[@]}"; do
+            # 跳过默认库，只处理其他位置的库
+            if [ "$lib" == "$steamapps_dir" ]; then
+                continue
+            fi
+
+            # 查找该库中的所有游戏
+            for manifest in "$lib"/appmanifest_*.acf; do
+                if [ -f "$manifest" ]; then
+                    local app_id=$(basename "$manifest" | sed 's/appmanifest_\(.*\)\.acf/\1/')
+                    local game_name=$(grep '"name"' "$manifest" | cut -d'"' -f4)
+                    local install_dir=$(grep '"installdir"' "$manifest" | cut -d'"' -f4)
+
+                    if [ -n "$app_id" ] && [ -n "$game_name" ] && [ -n "$install_dir" ]; then
+                        # 检查该游戏是否有缓存
+                        local cache_dir="$steamapps_dir/$cache_type/$app_id"
+                        if [ -d "$cache_dir" ] && [ ! -L "$cache_dir" ]; then
+                            # 计算缓存大小
+                            local size=$(du -sm "$cache_dir" 2>/dev/null | cut -f1)
+                            if [ -n "$size" ] && [ "$size" -gt 0 ]; then
+                                # 游戏安装路径
+                                local game_path="$lib/common/$install_dir"
+
+                                # 添加到列表
+                                echo "FALSE|$size|$app_id|$game_name|$game_path" >> "$tmp_dir/move_list.txt"
+                                count=$((count+1))
+                            fi
+                        fi
+                    fi
+                fi
+            done
+        done
+
+        # 如果没有找到可移动的缓存
+        if [ $count -eq 0 ]; then
+            echo "FALSE|0|0|No $cache_type to move|N/A" > "$tmp_dir/move_list.txt"
+        fi
+    }
+    
+    # 显示删除对话框
+    function show_delete_dialog() {
+        local cache_type="$1"
+        local title="选择要删除的$cache_type"
+
+        if [ "$cache_type" = "compatdata" ]; then
+            title="⚠  警告：选择要删除的兼容数据（将破坏游戏配置！）"
+        fi
+
+        # 读取列表文件
+        local zenity_items=()
+        while IFS='|' read -r check size app_id game_name status path; do
+            if [ "$size" != "0" ] && [ "$app_id" != "0" ]; then
+                zenity_items+=("$check" "$size" "$app_id" "$game_name" "$status" "$path")
+            fi
+        done < "$tmp_dir/delete_list.txt"
+
+        # 如果没有项目，显示提示并返回
+        if [ ${#zenity_items[@]} -eq 0 ]; then
+            zenity --info --width=400 --text="没有找到可删除的$cache_type。"
+            echo "empty"
+            return
+        fi
+
+        # 显示选择对话框
+        local selected=$(zenity --list \
+            --title="$title" \
+            --width=1200 --height=600 \
+            --print-column=6 \
+            --separator="|" \
+            --ok-label="删除选中的$cache_type" \
+            --extra-button="切换缓存类型" \
+            --checklist \
+            --column="选择" \
+            --column="大小(MB)" \
+            --column="应用ID" \
+            --column="游戏名称" \
+            --column="状态" \
+            --column="路径" \
+            "${zenity_items[@]}")
+
+        echo "$selected"
+    }
+    
+    # 显示移动对话框
+    function show_move_dialog() {
+        local cache_type="$1"
+
+        # 读取列表文件
+        local zenity_items=()
+        while IFS='|' read -r check size app_id game_name game_path; do
+            if [ "$size" != "0" ] && [ "$app_id" != "0" ]; then
+                zenity_items+=("$check" "$size" "$app_id" "$game_name" "$game_path")
+            fi
+        done < "$tmp_dir/move_list.txt"
+
+        # 如果没有项目，显示提示并返回
+        if [ ${#zenity_items[@]} -eq 0 ]; then
+            zenity --info --width=400 --text="没有找到可移动的$cache_type。"
+            echo "empty"
+            return
+        fi
+
+        # 显示选择对话框
+        local selected=$(zenity --list \
+            --title="选择要移动到游戏安装目录的$cache_type" \
+            --width=1200 --height=600 \
+            --print-column=3 \
+            --separator="|" \
+            --ok-label="移动选中的$cache_type" \
+            --extra-button="切换缓存类型" \
+            --checklist \
+            --column="选择" \
+            --column="大小(MB)" \
+            --column="应用ID" \
+            --column="游戏名称" \
+            --column="游戏安装目录" \
+            "${zenity_items[@]}")
+
+        echo "$selected"
+    }
+    
+    # 执行删除操作
+    function perform_delete() {
+        local cache_type="$1"
+        local selected_items="$2"
+
+        if [ -z "$selected_items" ] || [ "$selected_items" = "empty" ]; then
+            return 1
+        fi
+
+        # 将选中的项目转换为数组
+        IFS='|' read -ra selected_array <<< "$selected_items"
+
+        if [ ${#selected_array[@]} -eq 0 ]; then
+            zenity --error --width=400 --text="没有选择任何$cache_type！"
+            return 1
+        fi
+
+        # 显示确认对话框
+        if [ "$cache_type" = "compatdata" ]; then
+            zenity --question --width=500 \
+                --text="⚠  严重警告！\n\n删除兼容数据将：\n• 删除游戏存档和设置\n• 删除Wine前缀配置\n• 可能导致游戏无法启动\n\n仅当您知道自己在做什么时才继续！\n确定要删除选中的兼容数据吗？"
+
+            if [ $? -ne 0 ]; then
+                return 1
+            fi
+        else
+            zenity --question --width=400 \
+                --text="确定要删除选中的着色器缓存吗？\n游戏下次运行时需要重新编译着色器，可能导致首次加载变慢。"
+
+            if [ $? -ne 0 ]; then
+                return 1
+            fi
+        fi
+
+        # 显示进度条
+        (
+            local total=${#selected_array[@]}
+            local current=0
+
+            for item in "${selected_array[@]}"; do
+                ((current++))
+                local percentage=$((current * 100 / total))
+
+                echo "# 正在删除: $(basename "$item")"
+                echo "$percentage"
+
+                if [ $live -eq 1 ]; then
+                    rm -rf "$item" 2>/dev/null
+                fi
+
+                sleep 0.5
+            done
+
+            if [ $live -eq 1 ]; then
+                echo "# $cache_type 删除完成！"
+            else
+                echo "# 模拟运行 - 实际未删除任何文件"
+            fi
+        ) | zenity --progress \
+            --title="删除$cache_type" \
+            --percentage=0 \
+            --auto-close \
+            --width=400
+
+        return $?
+    }
+    
+    # 执行移动操作
+    function perform_move() {
+        local cache_type="$1"
+        local selected_items="$2"
+
+        if [ -z "$selected_items" ] || [ "$selected_items" = "empty" ]; then
+            return 1
+        fi
+
+        # 将选中的项目转换为数组
+        IFS='|' read -ra selected_array <<< "$selected_items"
+
+        if [ ${#selected_array[@]} -eq 0 ]; then
+            zenity --error --width=400 --text="没有选择任何$cache_type！"
+            return 1
+        fi
+
+        # 显示进度条
+        (
+            local total=${#selected_array[@]}
+            local current=0
+
+            for app_id in "${selected_array[@]}"; do
+                ((current++))
+                local percentage=$((current * 100 / total))
+
+                # 查找游戏信息
+                local game_info=$(get_game_install_info "$app_id")
+                local game_name=$(echo "$game_info" | cut -d'|' -f1)
+                local game_path=$(echo "$game_info" | cut -d'|' -f2)
+
+                echo "# 正在移动 $app_id ($game_name)"
+                echo "$percentage"
+
+                if [ $live -eq 1 ]; then
+                    local source_dir="$steamapps_dir/$cache_type/$app_id"
+                    local target_dir="$game_path/$cache_type"
+
+                    # 创建目标目录
+                    mkdir -p "$target_dir" 2>/dev/null
+
+                    # 复制文件
+                    if cp -r "$source_dir" "$target_dir/" 2>/dev/null; then
+                        # 删除原始文件
+                        rm -rf "$source_dir" 2>/dev/null
+
+                        # 创建符号链接
+                        ln -s "$target_dir/$app_id" "$source_dir" 2>/dev/null
+                    fi
+                fi
+
+                sleep 1
+            done
+
+            if [ $live -eq 1 ]; then
+                echo "# $cache_type 移动完成！"
+            else
+                echo "# 模拟运行 - 实际未移动任何文件"
+            fi
+        ) | zenity --progress \
+            --title="移动$cache_type" \
+            --percentage=0 \
+            --auto-close \
+            --width=400
+
+        return $?
+    }
+    
+    # 显示主菜单
+    function show_main_menu() {
+        local choice=$(zenity --list \
+            --title="Steam Deck 缓存管理器" \
+            --width=500 --height=350 \
+            --text="选择要执行的操作：" \
+            --column="操作" \
+            --column="描述" \
+            "删除着色器缓存" "删除选中的着色器缓存文件" \
+            "删除兼容数据" "删除选中的兼容数据（危险！）" \
+            "移动着色器缓存" "将着色器缓存移动到游戏目录" \
+            "移动兼容数据" "将兼容数据移动到游戏目录" \
+            "切换模式" "切换实际执行/模拟运行" \
+            "退出" "退出程序")
+
+        echo "$choice"
+    }
+    
+    # 显示状态信息
+    function show_status() {
+        local mode_text=""
+        if [ $live -eq 1 ]; then
+            mode_text="实际执行模式"
+        else
+            mode_text="模拟运行模式"
+        fi
+
+        local shader_size="N/A"
+        local compat_size="N/A"
+
+        if [ -d "$steamapps_dir/shadercache" ]; then
+            shader_size=$(du -sh "$steamapps_dir/shadercache" 2>/dev/null | cut -f1)
+        fi
+
+        if [ -d "$steamapps_dir/compatdata" ]; then
+            compat_size=$(du -sh "$steamapps_dir/compatdata" 2>/dev/null | cut -f1)
+        fi
+
+        echo "=== Steam Deck 缓存管理器 ==="
+        echo "模式: $mode_text"
+        echo "着色器缓存大小: $shader_size"
+        echo "兼容数据大小: $compat_size"
+        echo "临时目录: $tmp_dir"
+        echo "============================="
+    }
+    
+    # 主程序
+    function cache_manager_main() {
+        # 检查环境
+        check_environment || return 1
+
+        # 创建临时目录
+        create_temp_dirs
+
+        # 主循环
+        while true; do
+            # 显示主菜单
+            local choice=$(show_main_menu)
+
+            if [ $? -ne 0 ] || [ -z "$choice" ]; then
+                echo "退出程序"
+                return 0
+            fi
+
+            case "$choice" in
+                "删除着色器缓存")
+                    echo "正在获取着色器缓存列表..."
+                    get_delete_list "shadercache"
+                    local selected=$(show_delete_dialog "shadercache")
+
+                    if [ "$selected" = "切换缓存类型" ]; then
+                        echo "切换到兼容数据删除..."
+                        get_delete_list "compatdata"
+                        selected=$(show_delete_dialog "compatdata")
+                        perform_delete "compatdata" "$selected"
+                    elif [ -n "$selected" ] && [ "$selected" != "empty" ]; then
+                        perform_delete "shadercache" "$selected"
+                    fi
+                    ;;
+
+                "删除兼容数据")
+                    echo "正在获取兼容数据列表..."
+                    get_delete_list "compatdata"
+                    local selected=$(show_delete_dialog "compatdata")
+
+                    if [ "$selected" = "切换缓存类型" ]; then
+                        echo "切换到着色器缓存删除..."
+                        get_delete_list "shadercache"
+                        selected=$(show_delete_dialog "shadercache")
+                        perform_delete "shadercache" "$selected"
+                    elif [ -n "$selected" ] && [ "$selected" != "empty" ]; then
+                        perform_delete "compatdata" "$selected"
+                    fi
+                    ;;
+
+                "移动着色器缓存")
+                    echo "正在获取可移动的着色器缓存列表..."
+                    get_move_list "shadercache"
+                    local selected=$(show_move_dialog "shadercache")
+
+                    if [ "$selected" = "切换缓存类型" ]; then
+                        echo "切换到兼容数据移动..."
+                        get_move_list "compatdata"
+                        selected=$(show_move_dialog "compatdata")
+                        perform_move "compatdata" "$selected"
+                    elif [ -n "$selected" ] && [ "$selected" != "empty" ]; then
+                        perform_move "shadercache" "$selected"
+                    fi
+                    ;;
+
+                "移动兼容数据")
+                    echo "正在获取可移动的兼容数据列表..."
+                    get_move_list "compatdata"
+                    local selected=$(show_move_dialog "compatdata")
+
+                    if [ "$selected" = "切换缓存类型" ]; then
+                        echo "切换到着色器缓存移动..."
+                        get_move_list "shadercache"
+                        selected=$(show_move_dialog "shadercache")
+                        perform_move "shadercache" "$selected"
+                    elif [ -n "$selected" ] && [ "$selected" != "empty" ]; then
+                        perform_move "compatdata" "$selected"
+                    fi
+                    ;;
+
+                "切换模式")
+                    if [ $live -eq 1 ]; then
+                        live=0
+                        zenity --info --width=300 --text="已切换到模拟运行模式\n（不会实际修改文件）"
+                    else
+                        live=1
+                        zenity --info --width=300 --text="已切换到实际执行模式"
+                    fi
+                    ;;
+
+                "退出")
+                    echo "退出程序"
+                    return 0
+                    ;;
+            esac
+        done
+    }
+    
+    # 运行缓存管理器
+    cache_manager_main
+    
+    echo ""
+    echo "缓存管理器操作完成。"
+    read -p "按回车键返回主菜单..."
+}
+
+# 25. 更新已安装应用
 update_installed_apps() {
     show_header
     echo -e "${YELLOW}════════════════ 更新已安装应用 ════════════════${NC}"
@@ -2797,7 +3390,7 @@ update_all_apps() {
     fi
 }
 
-# 25. 卸载已安装应用
+# 26. 卸载已安装应用
 uninstall_apps() {
     show_header
     echo -e "${YELLOW}════════════════ 卸载已安装应用 ════════════════${NC}"
