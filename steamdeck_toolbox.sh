@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Steam Deck 工具箱 v1.0.2
+# Steam Deck 工具箱 v1.0.3
 # 制作人：薯条＆DeepSeek
 
 # 颜色定义
@@ -24,7 +24,7 @@ SCRIPT_DIR="$(dirname "$SCRIPT_PATH")" # 脚本所在目录
 SCRIPT_NAME="$(basename "$SCRIPT_PATH")" # 脚本文件名
 
 # 版本信息
-VERSION="1.0.2"
+VERSION="1.0.3"
 REPO_URL="https://github.com/Zhucy123/steamdeck_toolbox" # GitHub仓库地址
 REPO_CDN_URLS=(
     "https://githubfast.com/Zhucy123/steamdeck_toolbox"
@@ -166,224 +166,148 @@ show_main_menu() {
         # 显示系统类型信息（简洁版）
         if [ "$SYSTEM_TYPE" == "dual" ]; then
             echo -e "${GREEN}当前系统: 双系统${NC}"
+            echo ""
+            echo -e "${CYAN}请选择要执行的功能：${NC}"
+            echo ""
+            # 双系统菜单（27项）
+            echo -e "${GREEN} 1. 关于支持与维护的说明  11. 安装＆卸载插件商店  21. 安装百度网盘${NC}"
+            echo -e "${GREEN} 2. 安装国内源            12. 安装＆卸载宝葫芦    22. 安装Edge浏览器${NC}"
+            echo -e "${GREEN} 3. 调整虚拟内存大小      13. 校准摇杆            23. 安装Google浏览器${NC}"
+            echo -e "${GREEN} 4. 修复磁盘写入错误      14. 设置管理员密码      24. 清理Steam缓存${NC}"
+            echo -e "${GREEN} 5. 修复引导              15. 安装AnyDesk         25. 更新已安装应用${NC}"
+            echo -e "${GREEN} 6. 修复互通盘            16. 安装ToDesk          26. 卸载已安装应用${NC}"
+            echo -e "${GREEN} 7. 清理hosts缓存         17. 安装WPS Office      27. 检查工具箱更新${NC}"
+            echo -e "${GREEN} 8. 安装UU加速器插件      18. 安装QQ              28. 安装小黄鸭插件${NC}"
+            echo -e "${GREEN} 9. 安装迅游加速器插件    19. 安装微信${NC}"
+            echo -e "${GREEN}10. 安装ToMoon            20. 安装QQ音乐${NC}"
+            echo ""
+            echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════════════${NC}"
+            echo ""
+
+            read -p "请输入选项 (输入1-28的数字): " choice
+
+            # 验证输入
+            if [[ ! "$choice" =~ ^[0-9]+$ ]]; then
+                echo -e "${RED}无效选择，请输入数字！${NC}"
+                sleep 1
+                continue
+            fi
+
+            # 检查选择是否在有效范围内
+            if [ $choice -lt 1 ] || [ $choice -gt 28 ]; then
+                echo -e "${RED}无效选择，请选择1到28之间的数字！${NC}"
+                sleep 1
+                continue
+            fi
+
+            # 双系统菜单映射
+            case $choice in
+                1) show_about ;;
+                2) install_chinese_source ;;
+                3) adjust_swap ;;
+                4) fix_disk_write_error ;;
+                5) fix_boot ;;
+                6) fix_shared_disk ;;
+                7) clear_hosts_cache ;;
+                8) install_uu_accelerator ;;
+                9) install_xunyou_accelerator ;;
+                10) install_tomoon ;;
+                11) install_remove_plugin_store ;;
+                12) install_remove_baohulu ;;
+                13) calibrate_joystick ;;
+                14) set_admin_password ;;
+                15) install_anydesk ;;
+                16) install_todesk ;;
+                17) install_wps_office ;;
+                18) install_qq ;;
+                19) install_wechat ;;
+                20) install_qqmusic ;;
+                21) install_baidunetdisk ;;
+                22) install_edge ;;
+                23) install_chrome ;;
+                24) steamdeck_cache_manager ;;
+                25) update_installed_apps ;;
+                26) uninstall_apps ;;
+                27) check_for_updates ;;
+                28) install_yellow_duck ;;
+                *)
+                    echo -e "${RED}无效选择，请重新输入！${NC}"
+                    sleep 1
+                    continue
+                    ;;
+            esac
         else
+            # 单系统
             echo -e "${YELLOW}当前系统: 单系统${NC}"
+            echo ""
+            echo -e "${CYAN}请选择要执行的功能：${NC}"
+            echo ""
+            # 单系统菜单（26项，跳过5、6项）
+            echo -e "${GREEN} 1. 关于支持与维护的说明  10. 安装＆卸载插件商店  19. 安装百度网盘${NC}"
+            echo -e "${GREEN} 2. 安装国内源            11. 安装＆卸载宝葫芦    20. 安装Edge浏览器${NC}"
+            echo -e "${GREEN} 3. 调整虚拟内存大小      12. 校准摇杆            21. 安装Google浏览器${NC}"
+            echo -e "${GREEN} 4. 修复磁盘写入错误      13. 设置管理员密码      22. 清理Steam缓存${NC}"
+            echo -e "${GREEN} 5. 清理hosts缓存         14. 安装AnyDesk         23. 更新已安装应用${NC}"
+            echo -e "${GREEN} 6. 安装UU加速器插件      15. 安装ToDesk          24. 卸载已安装应用${NC}"
+            echo -e "${GREEN} 7. 安装迅游加速器插件    16. 安装WPS Office      25. 检查工具箱更新${NC}"
+            echo -e "${GREEN} 8. 安装ToMoon            17. 安装QQ              26. 安装小黄鸭插件${NC}"
+            echo -e "${GREEN} 9. 安装＆卸载插件商店    18. 安装微信${NC}"
+            echo ""
+            echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════════════${NC}"
+            echo ""
+
+            read -p "请输入选项 (输入1-26的数字): " choice
+
+            # 验证输入
+            if [[ ! "$choice" =~ ^[0-9]+$ ]]; then
+                echo -e "${RED}无效选择，请输入数字！${NC}"
+                sleep 1
+                continue
+            fi
+
+            # 检查选择是否在有效范围内
+            if [ $choice -lt 1 ] || [ $choice -gt 26 ]; then
+                echo -e "${RED}无效选择，请选择1到26之间的数字！${NC}"
+                sleep 1
+                continue
+            fi
+
+            # 单系统菜单映射（跳过5、6两项，后面的项对应向前移动2位）
+            case $choice in
+                1) show_about ;;
+                2) install_chinese_source ;;
+                3) adjust_swap ;;
+                4) fix_disk_write_error ;;
+                5) clear_hosts_cache ;;
+                6) install_uu_accelerator ;;
+                7) install_xunyou_accelerator ;;
+                8) install_tomoon ;;
+                9) install_remove_plugin_store ;;
+                10) install_remove_baohulu ;;
+                11) calibrate_joystick ;;
+                12) set_admin_password ;;
+                13) install_anydesk ;;
+                14) install_todesk ;;
+                15) install_wps_office ;;
+                16) install_qq ;;
+                17) install_wechat ;;
+                18) install_qqmusic ;;
+                19) install_baidunetdisk ;;
+                20) install_edge ;;
+                21) install_chrome ;;
+                22) steamdeck_cache_manager ;;
+                23) update_installed_apps ;;
+                24) uninstall_apps ;;
+                25) check_for_updates ;;
+                26) install_yellow_duck ;;
+                *)
+                    echo -e "${RED}无效选择，请重新输入！${NC}"
+                    sleep 1
+                    continue
+                    ;;
+            esac
         fi
-        echo ""
-
-        echo -e "${CYAN}请选择要执行的功能：${NC}"
-        echo ""
-
-        # 预设的三列菜单布局
-        echo -e "${GREEN} 1. 关于支持与维护的说明  11. 安装＆卸载插件商店  21. 安装百度网盘${NC}"
-        echo -e "${GREEN} 2. 安装国内源            12. 安装＆卸载宝葫芦    22. 安装Edge浏览器${NC}"
-        echo -e "${GREEN} 3. 调整虚拟内存大小      13. 校准摇杆            23. 安装Google浏览器${NC}"
-        echo -e "${GREEN} 4. 修复磁盘写入错误      14. 设置管理员密码      24. 清理Steam缓存${NC}"
-        echo -e "${GREEN} 5. 修复引导              15. 安装AnyDesk         25. 更新已安装应用${NC}"
-        echo -e "${GREEN} 6. 修复互通盘            16. 安装ToDesk          26. 卸载已安装应用${NC}"
-        echo -e "${GREEN} 7. 清理hosts缓存         17. 安装WPS Office      27. 检查工具箱更新${NC}"
-        echo -e "${GREEN} 8. 安装UU加速器插件      18. 安装QQ${NC}"
-        echo -e "${GREEN} 9. 安装迅游加速器插件    19. 安装微信${NC}"
-        echo -e "${GREEN}10. 安装ToMoon            20. 安装QQ音乐${NC}"
-
-        echo ""
-        echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════════════${NC}"
-        echo ""
-
-        read -p "请输入选项 (输入数字): " choice
-
-        # 验证输入
-        if [[ ! "$choice" =~ ^[0-9]+$ ]]; then
-            echo -e "${RED}无效选择，请输入数字！${NC}"
-            sleep 1
-            continue
-        fi
-
-        # 检查选择是否在有效范围内
-        if [ $choice -lt 1 ] || [ $choice -gt 27 ]; then
-            echo -e "${RED}无效选择，请选择1到27之间的数字！${NC}"
-            sleep 1
-            continue
-        fi
-
-        # 创建菜单项数组
-        local menu_items=()
-        local menu_functions=()
-
-        # 添加菜单项（根据系统类型调整）
-        menu_items+=("关于支持与维护的说明")
-        menu_functions+=("show_about")
-
-        menu_items+=("安装国内源")
-        menu_functions+=("install_chinese_source")
-
-        menu_items+=("调整虚拟内存大小")
-        menu_functions+=("adjust_swap")
-
-        menu_items+=("修复磁盘写入错误")
-        menu_functions+=("fix_disk_write_error")
-
-        if [ "$SYSTEM_TYPE" == "dual" ]; then
-            menu_items+=("修复引导")
-            menu_functions+=("fix_boot")
-
-            menu_items+=("修复互通盘")
-            menu_functions+=("fix_shared_disk")
-        fi
-
-        menu_items+=("清理hosts缓存")
-        menu_functions+=("clear_hosts_cache")
-
-        menu_items+=("安装UU加速器插件")
-        menu_functions+=("install_uu_accelerator")
-
-        menu_items+=("安装迅游加速器插件")
-        menu_functions+=("install_xunyou_accelerator")
-
-        menu_items+=("安装ToMoon")
-        menu_functions+=("install_tomoon")
-
-        menu_items+=("安装＆卸载插件商店")
-        menu_functions+=("install_remove_plugin_store")
-
-        menu_items+=("安装＆卸载宝葫芦")
-        menu_functions+=("install_remove_baohulu")
-
-        menu_items+=("校准摇杆")
-        menu_functions+=("calibrate_joystick")
-
-        menu_items+=("设置管理员密码")
-        menu_functions+=("set_admin_password")
-
-        menu_items+=("安装AnyDesk")
-        menu_functions+=("install_anydesk")
-
-        menu_items+=("安装ToDesk")
-        menu_functions+=("install_todesk")
-
-        menu_items+=("安装WPS Office")
-        menu_functions+=("install_wps_office")
-
-        menu_items+=("安装QQ")
-        menu_functions+=("install_qq")
-
-        menu_items+=("安装微信")
-        menu_functions+=("install_wechat")
-
-        menu_items+=("安装QQ音乐")
-        menu_functions+=("install_qqmusic")
-
-        menu_items+=("安装百度网盘")
-        menu_functions+=("install_baidunetdisk")
-
-        menu_items+=("安装Edge浏览器")
-        menu_functions+=("install_edge")
-
-        menu_items+=("安装Google浏览器")
-        menu_functions+=("install_chrome")
-
-        menu_items+=("清理Steam缓存")
-        menu_functions+=("steamdeck_cache_manager")
-
-        menu_items+=("更新已安装应用")
-        menu_functions+=("update_installed_apps")
-
-        menu_items+=("卸载已安装应用")
-        menu_functions+=("uninstall_apps")
-
-        menu_items+=("检查工具箱更新")
-        menu_functions+=("check_for_updates")
-
-        # 执行对应的功能
-        local idx=$((choice - 1))
-        local func="${menu_functions[$idx]}"
-
-        # 调用函数
-        $func
     done
-}
-
-# 映射用户选择到实际功能（根据系统类型调整）
-map_choice_to_function() {
-    local choice="$1"
-
-    # 如果系统类型未检测，重新检测
-    if [ -z "$SYSTEM_TYPE" ]; then
-        detect_system_type
-    fi
-
-    # 单系统情况下的菜单映射
-    if [ "$SYSTEM_TYPE" == "single" ]; then
-        case $choice in
-            # 1-4项直接对应
-            1) show_about ;;
-            2) install_chinese_source ;;
-            3) adjust_swap ;;
-            4) fix_disk_write_error ;;
-
-            # 5-25项需要向后偏移2位（因为跳过了5、6两项）
-            5) clear_hosts_cache ;;
-            6) install_uu_accelerator ;;
-            7) install_xunyou_accelerator ;;
-            8) install_tomoon ;;
-            9) install_remove_plugin_store ;;
-            10) install_remove_baohulu ;;
-            11) calibrate_joystick ;;
-            12) set_admin_password ;;
-            13) install_anydesk ;;
-            14) install_todesk ;;
-            15) install_wps_office ;;
-            16) install_qq ;;
-            17) install_wechat ;;
-            18) install_qqmusic ;;
-            19) install_baidunetdisk ;;
-            20) install_edge ;;
-            21) install_chrome ;;
-            22) steamdeck_cache_manager ;;
-            23) update_installed_apps ;;
-            24) uninstall_apps ;;
-            25) check_for_updates ;;
-            *)
-                echo -e "${RED}无效选择，请重新输入！${NC}"
-                sleep 1
-                ;;
-        esac
-    else
-        # 双系统情况下的菜单映射（原样）
-        case $choice in
-            1) show_about ;;
-            2) install_chinese_source ;;
-            3) adjust_swap ;;
-            4) fix_disk_write_error ;;
-            5) fix_boot ;;
-            6) fix_shared_disk ;;
-            7) clear_hosts_cache ;;
-            8) install_uu_accelerator ;;
-            9) install_xunyou_accelerator ;;
-            10) install_tomoon ;;
-            11) install_remove_plugin_store ;;
-            12) install_remove_baohulu ;;
-            13) calibrate_joystick ;;
-            14) set_admin_password ;;
-            15) install_anydesk ;;
-            16) install_todesk ;;
-            17) install_wps_office ;;
-            18) install_qq ;;
-            19) install_wechat ;;
-            20) install_qqmusic ;;
-            21) install_baidunetdisk ;;
-            22) install_edge ;;
-            23) install_chrome ;;
-            24) steamdeck_cache_manager ;;
-            25) update_installed_apps ;;
-            26) uninstall_apps ;;
-            27) check_for_updates ;;
-            *)
-                echo -e "${RED}无效选择，请重新输入！${NC}"
-                sleep 1
-                ;;
-        esac
-    fi
 }
 
 # ============================================
@@ -1302,9 +1226,9 @@ install_remove_plugin_store() {
             ;;
         2)
             echo -e "${CYAN}正在卸载插件商店...${NC}"
-            echo "卸载命令: sudo flatpak remove decky-loader"
+            echo "卸载命令: sudo rm -rf /home/deck/homebrew
 
-            if sudo flatpak remove decky-loader; then
+            if sudo rm -rf /home/deck/homebrew; then
                 echo ""
                 echo -e "${GREEN}✓ 插件商店卸载完成${NC}"
             else
@@ -2257,7 +2181,7 @@ install_baidunetdisk() {
             1)
                 # 创建桌面快捷方式
                 echo "正在创建桌面快捷方式..."
-                cat > "$DESKTOP_FILE" << EOF
+                cat > "$DESKTOP_FILE" << 'EOF'
 [Desktop Entry]
 Name=百度网盘
 Exec=flatpak run $INSTALLED_PACKAGE
@@ -2266,6 +2190,7 @@ Type=Application
 Categories=Network;FileTransfer;
 Comment=百度网盘客户端
 EOF
+                # 注意：上面的EOF必须顶格写，不能有缩进
 
                 chmod +x "$DESKTOP_FILE"
                 echo -e "${GREEN}✓ 桌面快捷方式已创建${NC}"
@@ -2349,7 +2274,7 @@ EOF
     # 创建桌面快捷方式
     echo ""
     echo "步骤4: 创建桌面快捷方式"
-    cat > "$DESKTOP_FILE" << EOF
+    cat > "$DESKTOP_FILE" << 'EOF'
 [Desktop Entry]
 Name=百度网盘
 Exec=flatpak run $FINAL_PACKAGE
@@ -2358,6 +2283,7 @@ Type=Application
 Categories=Network;FileTransfer;
 Comment=百度网盘客户端
 EOF
+    # 注意：上面的EOF必须顶格写，不能有缩进
 
     chmod +x "$DESKTOP_FILE"
     echo -e "${GREEN}✓ 桌面快捷方式已创建${NC}"
@@ -2686,11 +2612,11 @@ steamdeck_cache_manager() {
     show_header
     echo -e "${YELLOW}════════════════ Steam Deck 缓存管理器 ════════════════${NC}"
     echo ""
-    
+
     echo "正在启动 Steam Deck 缓存管理器..."
     echo "该功能需要图形界面支持，请确保您在桌面模式下运行。"
     echo ""
-    
+
     # 检查是否在桌面模式下
     if [ -z "$DISPLAY" ]; then
         echo -e "${RED}错误：未检测到图形界面环境。${NC}"
@@ -2699,11 +2625,11 @@ steamdeck_cache_manager() {
         read -p "按回车键返回主菜单..."
         return
     fi
-    
+
     # 检查zenity是否安装
     if ! command -v zenity &> /dev/null; then
         echo -e "${YELLOW}未找到zenity工具，正在尝试安装...${NC}"
-        
+
         # 尝试安装zenity
         if command -v pacman &> /dev/null; then
             echo "正在安装zenity..."
@@ -2718,7 +2644,7 @@ steamdeck_cache_manager() {
             read -p "按回车键返回主菜单..."
             return
         fi
-        
+
         # 再次检查zenity是否安装成功
         if ! command -v zenity &> /dev/null; then
             echo -e "${RED}✗ Zenity安装失败！${NC}"
@@ -2727,10 +2653,10 @@ steamdeck_cache_manager() {
             return
         fi
     fi
-    
+
     echo -e "${GREEN}✓ 环境检查完成，启动缓存管理器...${NC}"
     echo ""
-    
+
     # 执行缓存管理器
     exec_steamdeck_cache_manager
 }
@@ -2742,13 +2668,13 @@ exec_steamdeck_cache_manager() {
     local tmp_dir="$TEMP_DIR/steamdeck_cache_manager"
     local steamapps_dir="/home/deck/.local/share/Steam/steamapps"
     local cache_type="shadercache"
-    
+
     # 创建临时目录
     function create_temp_dirs() {
         mkdir -p "$tmp_dir"
         echo "临时目录: $tmp_dir"
     }
-    
+
     # 检查环境
     function check_environment() {
         if [ ! -d "$steamapps_dir" ]; then
@@ -2763,7 +2689,7 @@ exec_steamdeck_cache_manager() {
         fi
         return 0
     }
-    
+
     # 查找所有Steam库目录
     function find_steam_libraries() {
         local libraries=()
@@ -2791,7 +2717,7 @@ exec_steamdeck_cache_manager() {
 
         echo "${libraries[@]}"
     }
-    
+
     # 获取游戏安装信息
     function get_game_install_info() {
         local app_id="$1"
@@ -2818,7 +2744,7 @@ exec_steamdeck_cache_manager() {
         echo "Unknown|Unknown"
         return 1
     }
-    
+
     # 获取删除列表（着色器缓存或兼容数据）
     function get_delete_list() {
         local cache_type="$1"
@@ -2873,7 +2799,7 @@ exec_steamdeck_cache_manager() {
             echo "FALSE|0|0|No $cache_type found|N/A|$steamapps_dir/$cache_type" > "$tmp_dir/delete_list.txt"
         fi
     }
-    
+
     # 获取移动列表（着色器缓存或兼容数据）
     function get_move_list() {
         local cache_type="$1"
@@ -2929,7 +2855,7 @@ exec_steamdeck_cache_manager() {
             echo "FALSE|0|0|No $cache_type to move|N/A" > "$tmp_dir/move_list.txt"
         fi
     }
-    
+
     # 显示删除对话框
     function show_delete_dialog() {
         local cache_type="$1"
@@ -2973,7 +2899,7 @@ exec_steamdeck_cache_manager() {
 
         echo "$selected"
     }
-    
+
     # 显示移动对话框
     function show_move_dialog() {
         local cache_type="$1"
@@ -3011,7 +2937,7 @@ exec_steamdeck_cache_manager() {
 
         echo "$selected"
     }
-    
+
     # 执行删除操作
     function perform_delete() {
         local cache_type="$1"
@@ -3078,7 +3004,7 @@ exec_steamdeck_cache_manager() {
 
         return $?
     }
-    
+
     # 执行移动操作
     function perform_move() {
         local cache_type="$1"
@@ -3146,7 +3072,7 @@ exec_steamdeck_cache_manager() {
 
         return $?
     }
-    
+
     # 显示主菜单
     function show_main_menu() {
         local choice=$(zenity --list \
@@ -3164,7 +3090,7 @@ exec_steamdeck_cache_manager() {
 
         echo "$choice"
     }
-    
+
     # 显示状态信息
     function show_status() {
         local mode_text=""
@@ -3192,7 +3118,7 @@ exec_steamdeck_cache_manager() {
         echo "临时目录: $tmp_dir"
         echo "============================="
     }
-    
+
     # 主程序
     function cache_manager_main() {
         # 检查环境
@@ -3289,10 +3215,10 @@ exec_steamdeck_cache_manager() {
             esac
         done
     }
-    
+
     # 运行缓存管理器
     cache_manager_main
-    
+
     echo ""
     echo "缓存管理器操作完成。"
     read -p "按回车键返回主菜单..."
@@ -3440,7 +3366,8 @@ update_all_apps() {
     fi
 }
 
-# 26. 卸载已安装应用
+# 26. 卸载已安装应用（双系统）
+# 27. 卸载已安装应用（单系统）
 uninstall_apps() {
     show_header
     echo -e "${YELLOW}════════════════ 卸载已安装应用 ════════════════${NC}"
@@ -3563,6 +3490,530 @@ uninstall_app_by_name() {
     fi
 
     read -p "按回车键返回..."
+}
+
+# 28. 安装小黄鸭插件（双系统）/26. 安装小黄鸭插件（单系统）
+install_yellow_duck() {
+    show_header
+    echo -e "${YELLOW}════════════════ 安装小黄鸭插件 ════════════════${NC}"
+
+    # 创建临时目录
+    mkdir -p "$TEMP_DIR/yellow_duck"
+    local temp_dir="$TEMP_DIR/yellow_duck"
+
+    # 保存小黄鸭插件安装脚本
+    cat > "$temp_dir/yellow_duck_installer.sh" << 'EOF'
+#!/bin/bash
+
+# ==========================================
+# 函数：检测 Decky Loader 及插件商店
+# ==========================================
+check_decky_shop() {
+    echo "[检测] 正在检查 Decky Loader 及插件商店状态..."
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+    declare -a DECKY_PATHS=(
+        "/home/deck/homebrew/plugins"
+        "/home/deck/.config/decky-loader/plugins"
+    )
+
+    local FOUND_DECKY=false
+    local DECKY_MAIN_PATH=""
+
+    for CHECK_PATH in "${DECKY_PATHS[@]}"; do
+        if [[ -d "$CHECK_PATH" ]]; then
+            FOUND_DECKY=true
+            DECKY_MAIN_PATH="$CHECK_PATH"
+            echo "✅ 已安装 Decky Loader 及插件商店。"
+            echo "   插件目录：$CHECK_PATH"
+            echo ""
+            return 0
+        fi
+    done
+
+    echo ""
+    if [[ "$FOUND_DECKY" == false ]]; then
+        echo "❌ 未检测到 Decky Loader 插件商店目录。"
+        echo "   请先安装并启动 Decky Loader 后再运行此脚本。"
+        return 1
+    fi
+}
+
+# ==========================================
+# 函数：安装插件商店
+# ==========================================
+install_plugin_store() {
+    echo ""
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo "准备安装插件商店..."
+    echo "官方安装脚本：curl -L http://dl.ohmydeck.net | sh"
+    echo ""
+    echo "请注意："
+    echo "1. 此操作需要网络连接。"
+    echo "2. 安装过程可能需要几分钟，请耐心等待。"
+    echo "3. 安装完成后可能需要重启 Decky Loader 或 Steam Deck。"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo ""
+
+    read -p "确定要现在安装插件商店吗？(y/N): " -n 1 -r
+    echo ""
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        echo "安装已取消。"
+        exit 0
+    fi
+
+    echo "正在安装插件商店，请稍候..."
+    echo "----------------------------------------"
+
+    if curl -L http://dl.ohmydeck.net | sh; then
+        echo "----------------------------------------"
+        echo "✅ 插件商店安装完成！"
+        echo "建议：请切换到游戏模式，检查 Decky Loader 中是否出现插件商店图标。"
+        sleep 3
+        return 0
+    else
+        echo "----------------------------------------"
+        echo "❌ 插件商店安装失败！"
+        echo "请检查网络连接后重试，或手动安装 Decky Loader。"
+        return 1
+    fi
+}
+
+# ==========================================
+# 函数：检查已安装插件版本
+# ==========================================
+check_installed_version() {
+    local plugin_dir="/home/deck/homebrew/plugins/Decky LSFG-VK"
+    local package_json="$plugin_dir/package.json"
+
+    if [[ -d "$plugin_dir" && -f "$package_json" ]]; then
+        # 提取版本号
+        local version=$(grep -o '"version"[[:space:]]*:[[:space:]]*"[^"]*"' "$package_json" | cut -d'"' -f4)
+        if [[ -n "$version" ]]; then
+            echo "$version"
+            return 0
+        fi
+    fi
+    echo ""
+    return 1
+}
+
+# ==========================================
+# 函数：从zip文件名提取版本号
+# ==========================================
+extract_version_from_filename() {
+    local zip_file="$1"
+    local base_name=$(basename "$zip_file" .zip)
+
+    # 提取版本号，支持格式: Decky.LSFG-VKv1.2.3 或 Decky.LSFG-VK-v1.2.3
+    if [[ $base_name =~ v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        echo "${BASH_REMATCH[0]:1}"  # 去掉开头的v
+        return 0
+    fi
+    echo ""
+    return 1
+}
+
+# ==========================================
+# 函数：版本号比较
+# ==========================================
+compare_versions() {
+    local ver1="$1"
+    local ver2="$2"
+
+    if [[ "$ver1" == "$ver2" ]]; then
+        echo "equal"
+    else
+        # 使用sort进行版本号比较
+        local higher_version=$(echo -e "$ver1\n$ver2" | sort -V | tail -n1)
+        [[ "$higher_version" == "$ver1" ]] && echo "greater" || echo "less"
+    fi
+}
+
+# ==========================================
+# 函数：解压并安装插件
+# ==========================================
+install_plugin_from_zip() {
+    local zip_file="$1"
+    local new_version="$2"
+    local plugin_dir="/home/deck/homebrew/plugins"
+
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo "步骤: 解压并安装插件 (版本: $new_version)"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo ""
+
+    # 1. 检查目标目录
+    if [ ! -d "$plugin_dir" ]; then
+        echo "❌ 错误: 插件目录不存在: $plugin_dir"
+        echo "    请确保 Decky Loader 插件商店已正确安装。"
+        return 1
+    fi
+
+    # 2. 检查ZIP文件
+    if [ ! -f "$zip_file" ]; then
+        echo "❌ 错误: 插件ZIP文件不存在: $zip_file"
+        return 1
+    fi
+
+    echo "解压文件: $(basename "$zip_file")"
+    echo "目标目录: $plugin_dir"
+    echo ""
+
+    # 3. 执行解压（使用sudo）
+    echo "正在解压（需要管理员权限），请稍候..."
+    if sudo unzip -o "$zip_file" -d "$plugin_dir" 2>&1; then
+        echo ""
+        # 4. 修正解压后的文件权限，确保Decky Loader可以读取
+        echo "修正插件文件权限..."
+        sudo chown -R deck:deck "$plugin_dir/Decky LSFG-VK" 2>/dev/null || echo "权限修正步骤跳过，但问题可能已解决。"
+
+        # 5. 删除ZIP源文件
+        echo "清理临时文件..."
+        if sudo rm -f "$zip_file"; then
+            echo "已删除源文件: $(basename "$zip_file")"
+        else
+            echo "注意: 源文件清理未完成，可手动删除。"
+        fi
+        echo ""
+        echo "✅ 小黄鸭插件安装完成！ (版本: $new_version)"
+        echo ""
+        echo "安装位置: $plugin_dir/Decky LSFG-VK"
+        echo ""
+        echo "提示:"
+        echo "1. 请切换到游戏模式，在 Decky Loader 插件列表中查看新插件。"
+        echo "2. 安装新版本后，建议重启 Steam Deck 以确保完全生效。"
+        echo ""
+        return 0
+    else
+        echo ""
+        echo "❌ 解压失败！"
+        echo "请检查ZIP文件是否完整，或尝试手动解压。"
+        return 1
+    fi
+}
+
+# ==========================================
+# 函数：删除旧版本插件
+# ==========================================
+remove_old_plugin() {
+    local plugin_dir="/home/deck/homebrew/plugins/Decky LSFG-VK"
+
+    echo "准备删除旧版本插件..."
+    if [[ -d "$plugin_dir" ]]; then
+        echo "删除目录: $plugin_dir"
+        if sudo rm -rf "$plugin_dir"; then
+            echo "✅ 旧版本插件已删除。"
+            return 0
+        else
+            echo "❌ 删除旧版本插件失败！"
+            return 1
+        fi
+    else
+        echo "未找到旧版本插件目录，无需删除。"
+        return 0
+    fi
+}
+
+# ==========================================
+# 函数：获取仓库中最新的插件文件
+# ==========================================
+get_latest_zip_file() {
+    local clone_dir="$1"
+
+    # 查找所有带版本号的zip文件
+    local zip_files=($(find "$clone_dir" -name "Decky.LSFG-VKv*.zip" | head -20))
+
+    if [[ ${#zip_files[@]} -eq 0 ]]; then
+        echo ""
+        return 1
+    fi
+
+    # 初始化变量
+    local latest_file=""
+    local latest_version=""
+
+    # 遍历所有zip文件，找到版本号最大的
+    for zip_file in "${zip_files[@]}"; do
+        local version=$(extract_version_from_filename "$zip_file")
+
+        if [[ -n "$version" ]]; then
+            if [[ -z "$latest_version" ]] || [[ $(compare_versions "$version" "$latest_version") == "greater" ]]; then
+                latest_version="$version"
+                latest_file="$zip_file"
+            fi
+        fi
+    done
+
+    if [[ -n "$latest_file" && -n "$latest_version" ]]; then
+        echo "$latest_file|$latest_version"
+        return 0
+    fi
+
+    echo ""
+    return 1
+}
+
+# ==========================================
+# 函数：克隆仓库并执行安装/更新
+# ==========================================
+clone_and_process() {
+    local installed_version="$1"
+    local install_mode="$2"  # "install" 或 "update"
+
+    if [[ "$install_mode" == "install" ]]; then
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo "Steam Deck 小黄鸭插件安装助手"
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    else
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo "Steam Deck 小黄鸭插件更新助手"
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    fi
+    echo ""
+
+    # 仓库信息
+    REPO_OWNER="Zhucy123"
+    REPO_NAME="steamdeck_toolbox"
+    CLONE_DIR="$HOME/steamdeck_toolbox"
+
+    # 检查git
+    if ! command -v git &> /dev/null; then
+        echo "错误: Git未安装！"
+        echo "请先安装git: sudo pacman -S git"
+        exit 1
+    fi
+
+    # 清理旧目录
+    if [ -d "$CLONE_DIR" ]; then
+        echo "删除旧目录..."
+        rm -rf "$CLONE_DIR"
+    fi
+
+    # CDN镜像列表
+    MIRRORS=(
+        "https://githubfast.com/${REPO_OWNER}/${REPO_NAME}.git"
+        "https://gitclone.com/github.com/${REPO_OWNER}/${REPO_NAME}.git"
+        "https://github.com.cnpmjs.org/${REPO_OWNER}/${REPO_NAME}.git"
+        "https://github.com/${REPO_OWNER}/${REPO_NAME}.git"
+    )
+
+    # 尝试克隆
+    SUCCESS=false
+
+    for MIRROR in "${MIRRORS[@]}"; do
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo "尝试从镜像克隆: $(echo $MIRROR | cut -d'/' -f3)"
+        echo "仓库地址: $MIRROR"
+        echo ""
+
+        if git clone --depth=1 --progress "$MIRROR" "$CLONE_DIR" 2>&1; then
+            echo ""
+            echo "克隆成功！"
+            SUCCESS=true
+            break
+        else
+            echo ""
+            echo "克隆失败，尝试下一个镜像..."
+            rm -rf "$CLONE_DIR" 2>/dev/null
+            sleep 1
+        fi
+    done
+
+    if [ "$SUCCESS" = true ]; then
+        echo ""
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo "仓库已克隆到: $CLONE_DIR"
+
+        # 查找最新的插件文件
+        echo "搜索最新版本的插件文件..."
+        local latest_info=$(get_latest_zip_file "$CLONE_DIR")
+
+        if [[ -n "$latest_info" ]]; then
+            IFS='|' read -r latest_file latest_version <<< "$latest_info"
+
+            echo "找到最新版本插件文件: $(basename "$latest_file")"
+            echo "版本号: $latest_version"
+            echo ""
+
+            # 处理安装和更新模式
+            if [[ "$install_mode" == "install" ]]; then
+                # 安装模式
+                echo "开始安装小黄鸭插件 v$latest_version..."
+                echo ""
+            else
+                # 更新模式
+                echo "当前安装版本: $installed_version"
+                echo "仓库最新版本: $latest_version"
+                echo ""
+
+                # 比较版本
+                COMPARE_RESULT=$(compare_versions "$latest_version" "$installed_version")
+
+                if [[ "$COMPARE_RESULT" == "equal" ]]; then
+                    echo "✅ 已经是最新版本，无需更新。"
+                    echo ""
+                    echo "清理克隆的仓库目录..."
+                    rm -rf "$CLONE_DIR"
+                    echo "仓库目录已清理"
+                    echo ""
+                    read -p "按回车键退出..."
+                    exit 0
+                elif [[ "$COMPARE_RESULT" == "less" ]]; then
+                    echo "⚠ 警告: 仓库版本 ($latest_version) 低于当前安装版本 ($installed_version)"
+                    echo "这可能是开发版本或版本号异常，继续安装吗？"
+                    read -p "继续安装？(y/N): " -n 1 -r
+                    echo ""
+                    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+                        echo "安装已取消。"
+                        echo "清理克隆的仓库目录..."
+                        rm -rf "$CLONE_DIR"
+                        exit 0
+                    fi
+                    echo ""
+                    echo "开始安装版本 $latest_version..."
+                else
+                    echo "发现新版本: $latest_version"
+                    echo ""
+                    echo "开始更新到版本 $latest_version..."
+                fi
+
+                # 更新模式下，先删除旧版本插件
+                echo ""
+                if ! remove_old_plugin; then
+                    echo "无法删除旧版本插件，更新终止。"
+                    exit 1
+                fi
+                echo ""
+            fi
+
+            # 移动文件到目标目录
+            DECKY_TARGET="/home/deck/"
+            TARGET_PATH="$DECKY_TARGET$(basename "$latest_file")"
+
+            echo "移动插件文件到 $DECKY_TARGET ..."
+            if mv "$latest_file" "$DECKY_TARGET"; then
+                echo "文件移动成功"
+                echo ""
+
+                # 解压并安装
+                if install_plugin_from_zip "$TARGET_PATH" "$latest_version"; then
+                    echo "清理克隆的仓库目录..."
+                    rm -rf "$CLONE_DIR"
+                    echo "仓库目录已清理"
+                    echo ""
+
+                    if [[ "$install_mode" == "install" ]]; then
+                        echo "✅ 小黄鸭插件已成功安装 (版本: $latest_version)"
+                    else
+                        echo "✅ 小黄鸭插件已成功更新到版本: $latest_version"
+                    fi
+                    echo ""
+                    echo "提示: 重启 Steam Deck 后生效。"
+                    echo ""
+                    read -p "按回车键退出..."
+                    exit 0
+                else
+                    echo "安装失败，请检查错误信息。"
+                    exit 1
+                fi
+            else
+                echo "文件移动失败！"
+                exit 1
+            fi
+        else
+            echo "❌ 未找到带版本号的插件文件 (Decky.LSFG-VKv*.zip)"
+            echo "目录内容:"
+            ls -la "$CLONE_DIR"
+            exit 1
+        fi
+    else
+        echo ""
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo "所有镜像都失败了！"
+        echo "请检查网络连接后重试。"
+        exit 1
+    fi
+}
+
+# ==========================================
+# 主函数
+# ==========================================
+main() {
+    # 步骤 1: 优先检测插件商店
+    check_decky_shop
+    local check_result=$?
+
+    case $check_result in
+        0)
+            # 已安装插件商店，继续执行
+            echo ""
+            echo "✅ 环境检查通过，继续执行..."
+            sleep 1
+            clear
+            ;;
+        1)
+            # 未安装插件商店，询问是否安装
+            echo ""
+            if ! install_plugin_store; then
+                exit 1
+            fi
+            echo ""
+            echo "✅ 插件商店安装完成，继续执行..."
+            sleep 2
+            clear
+            ;;
+    esac
+
+    # 步骤 2: 检查是否已安装小黄鸭插件
+    echo "检查已安装的小黄鸭插件..."
+    INSTALLED_VERSION=$(check_installed_version)
+
+    if [[ -n "$INSTALLED_VERSION" ]]; then
+        echo "✅ 已安装小黄鸭插件，当前版本: $INSTALLED_VERSION"
+        echo ""
+        read -p "是否检查更新？(y/N): " -n 1 -r
+        echo ""
+
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            echo "脚本退出。"
+            exit 0
+        fi
+
+        # 用户选择检查更新，执行更新流程
+        echo "开始检查更新..."
+        echo ""
+        clone_and_process "$INSTALLED_VERSION" "update"
+    else
+        echo "未检测到小黄鸭插件，开始安装..."
+        echo ""
+        # 如果不存在插件，执行安装流程
+        clone_and_process "" "install"
+    fi
+}
+
+# ==========================================
+# 脚本入口
+# ==========================================
+main
+EOF
+
+    # 设置执行权限并运行小黄鸭插件安装脚本
+    chmod +x "$temp_dir/yellow_duck_installer.sh"
+
+    echo "正在启动小黄鸭插件安装助手..."
+    echo ""
+    echo "注意：此功能需要网络连接，请确保您的Steam Deck已连接到互联网。"
+    echo ""
+
+    # 执行安装脚本
+    "$temp_dir/yellow_duck_installer.sh"
+
+    # 清理临时文件
+    rm -rf "$temp_dir"
+
+    echo ""
+    read -p "按回车键返回主菜单..."
 }
 
 # ============================================
